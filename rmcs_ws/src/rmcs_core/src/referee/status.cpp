@@ -1,4 +1,6 @@
+#include <cstdint>
 #include <eigen3/Eigen/Eigen>
+#include <rclcpp/logging.hpp>
 #include <rclcpp/node.hpp>
 
 #include <rmcs_executor/component.hpp>
@@ -37,6 +39,7 @@ public:
 
         register_output("/referee/shooter/initial_speed", robot_initial_speed_, false);
         register_output("/referee/shooter/shoot_timestamp", robot_shoot_timestamp_, false);
+        register_output("/referee/dart/remaining_time", dart_remaining_time_, 0);
 
         robot_status_watchdog_.reset(5'000);
     }
@@ -46,10 +49,9 @@ public:
             return;
 
         if (cache_size_ >= sizeof(frame_.header)) {
-            auto frame_size = sizeof(frame_.header) + sizeof(frame_.body.command_id)
-                            + frame_.header.data_length + sizeof(uint16_t);
-            cache_size_ += serial_->read(
-                reinterpret_cast<std::byte*>(&frame_) + cache_size_, frame_size - cache_size_);
+            auto frame_size =
+                sizeof(frame_.header) + sizeof(frame_.body.command_id) + frame_.header.data_length + sizeof(uint16_t);
+            cache_size_ += serial_->read(reinterpret_cast<std::byte*>(&frame_) + cache_size_, frame_size - cache_size_);
 
             if (cache_size_ == frame_size) {
                 cache_size_ = 0;
@@ -62,9 +64,8 @@ public:
         } else {
             auto result = rmcs_utility::receive_package<std::byte>(
                 const_cast<rmcs_msgs::SerialInterface&>(*serial_), frame_.header, cache_size_,
-                static_cast<uint8_t>(0xa5), [](const FrameHeader& header) {
-                    return rmcs_utility::dji_crc::verify_crc8(header);
-                });
+                static_cast<uint8_t>(0xa5),
+                [](const FrameHeader& header) { return rmcs_utility::dji_crc::verify_crc8(header); });
             if (result == rmcs_utility::ReceiveResult::HEADER_INVALID) {
                 RCLCPP_WARN(logger_, "Header start invalid");
             } else if (result == rmcs_utility::ReceiveResult::VERIFY_INVALID) {
@@ -110,6 +111,8 @@ private:
             update_bullet_allowance();
         else if (command_id == 0x020B)
             update_game_robot_position();
+        else if (command_id == 0x0105)
+            update_dart_remianing_time();
     }
 
     void update_game_status() {
@@ -165,6 +168,12 @@ private:
 
     void update_game_robot_position() {}
 
+    void update_dart_remianing_time() {
+        auto& data            = reinterpret_cast<DartCommandData&>(frame_.body.data);
+        *dart_remaining_time_ = data.dart_remaining_time;
+        RCLCPP_INFO(logger_, "ramaining time:%hhu", *dart_remaining_time_);
+    }
+
     // When referee system loses connection unexpectedly,
     // use these indicators make sure the robot safe.
     // Muzzle: Cooling priority with level 1
@@ -196,6 +205,8 @@ private:
 
     OutputInterface<float> robot_initial_speed_;
     OutputInterface<double> robot_shoot_timestamp_;
+
+    OutputInterface<uint8_t> dart_remaining_time_;
 };
 
 } // namespace rmcs_core::referee

@@ -170,7 +170,10 @@ protected:
 
     void gyroscope_receive_callback(int16_t x, int16_t y, int16_t z) override { imu_.store_gyroscope_status(x, y, z); }
 
-    // void uart1_receive_callback();
+    void uart1_receive_callback(const std::byte* uart_data, uint8_t uart_data_length) override {
+        referee_ring_buffer_receive_.emplace_back_multi(
+            [&uart_data](std::byte* storage) { *storage = *uart_data++; }, uart_data_length);
+    }
     // void uart2_receive_callback();
 
 private:

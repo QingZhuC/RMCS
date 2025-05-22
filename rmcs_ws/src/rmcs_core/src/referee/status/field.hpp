@@ -90,4 +90,9 @@ struct __attribute__((packed)) GameRobotPosition {
     float infantry_5_y;
 };
 
+struct __attribute__((packed)) DartCommandData {
+    uint8_t dart_remaining_time;
+    uint16_t dart_info;
+};
+
 } // namespace rmcs_core::referee::status

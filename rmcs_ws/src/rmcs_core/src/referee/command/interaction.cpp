@@ -10,12 +10,9 @@ class Interaction
     , public rclcpp::Node {
 public:
     Interaction()
-        : Node{
-              get_component_name(),
-              rclcpp::NodeOptions{}.automatically_declare_parameters_from_overrides(true)} {
+        : Node{get_component_name(), rclcpp::NodeOptions{}.automatically_declare_parameters_from_overrides(true)} {
 
-        register_input(
-            "/referee/command/interaction/sentry_decision", sentry_decision_field_, false);
+        register_input("/referee/command/interaction/sentry_decision", sentry_decision_field_, false);
         register_input("/referee/command/interaction/communicate", communicate_field_, false);
         register_input("/referee/command/interaction/ui", ui_field_, false);
 
