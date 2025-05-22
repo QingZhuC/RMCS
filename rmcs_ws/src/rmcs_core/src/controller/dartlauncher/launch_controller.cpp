@@ -38,15 +38,16 @@ public:
 
         register_input("/dart/first_right_friction/velocity", first_fric_current_velocity_, false);
         register_input("/dart/second_right_friction/velocity", second_fric_current_velocity_, false);
-        register_input("/dart/control_command/friction_enable", friction_command_);
 
-        register_input("/dart/control_command/filling_start", fire_command_);
+        register_input("/dart_guide/fire_command", fire_command_, false);
         register_input("/dart/conveyor/velocity", conveyor_current_velocity_, false);
         register_output("/dart/conveyor/control_velocity", conveyor_control_velocity_, nan);
+
+        register_output("/dart/launch_count", launch_count_, 0);
     }
 
     void update() override {
-        if (*friction_command_) {
+        if (*fire_command_) {
             *first_fric_control_velocity_  = *first_fric_working_velocity_;
             *second_fric_control_velocity_ = *second_fric_working_velocity_;
             stop_count_                    = 0;
@@ -90,9 +91,9 @@ private:
         if (conveyor_direction_ < 0) {
             *conveyor_control_velocity_ = conveyor_down_velocity_;
             if (push_block_moving_ && *conveyor_current_velocity_ == 0) {
-                launch_ready_               = true;
                 *conveyor_control_velocity_ = nan;
                 push_block_moving_          = false;
+                launch_ready_               = true;
             }
         } // 下行与准备
 
@@ -103,7 +104,6 @@ private:
     static constexpr double nan = std::numeric_limits<double>::quiet_NaN();
     int stop_count_             = 0;
 
-    InputInterface<bool> friction_command_;
     InputInterface<double> first_fric_working_velocity_, second_fric_working_velocity_;
     InputInterface<double> first_fric_current_velocity_, second_fric_current_velocity_;
     OutputInterface<double> first_fric_control_velocity_, second_fric_control_velocity_;

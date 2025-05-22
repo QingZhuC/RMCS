@@ -33,13 +33,13 @@ public:
         register_input("/dart/device/imu_data", imu_data_);
         register_output("/dart/pitch_angle/current_angle", pitch_angle_current_value_, nan);
 
-        register_input("/dart_guide/pitch_angle_setpoint", dart_guide_pitch_);
+        register_input("/dart_guide/pitch_angle_setpoint", dart_guide_pitch_, false);
         register_output("/dart/pitch_angle/setpoint", pitch_angle_setpoint_);
 
-        register_input("/dart/pitch_angle/output_velocity", dart_pitch_expected_velocity_);
+        register_input("/dart/pitch_angle/pid_output_velocity", dart_pitch_expected_velocity_, false);
         register_output("/dart/pitch_angle/control_velocity", dart_pitch_control_velocity_, nan);
 
-        register_input("/dart_guide/pitch_angle_lock", angle_lock_);
+        register_input("/dart_guide/pitch_angle_lock", angle_lock_, false);
 
         launch_time_ = std::chrono::steady_clock::now();
     }
