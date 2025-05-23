@@ -39,15 +39,15 @@ public:
         register_input("/dart/first_right_friction/velocity", first_fric_current_velocity_, false);
         register_input("/dart/second_right_friction/velocity", second_fric_current_velocity_, false);
 
-        register_input("/dart_guide/fire_command", fire_command_, false);
         register_input("/dart/conveyor/velocity", conveyor_current_velocity_, false);
         register_output("/dart/conveyor/control_velocity", conveyor_control_velocity_, nan);
 
         register_output("/dart/launch_count", launch_count_, 0);
+        register_input("/dart_guide/guide_ready", guide_ready_);
     }
 
     void update() override {
-        if (*fire_command_) {
+        if (*guide_ready_) {
             *first_fric_control_velocity_  = *first_fric_working_velocity_;
             *second_fric_control_velocity_ = *second_fric_working_velocity_;
             stop_count_                    = 0;
@@ -74,7 +74,7 @@ private:
             push_block_moving_ = true;
         }
 
-        if (*fire_command_ && launch_ready_) {
+        if (*guide_ready_ && launch_ready_) {
             *conveyor_control_velocity_ = conveyor_up_velocity_;
             conveyor_direction_         = 1;
         } // 上行
@@ -110,12 +110,12 @@ private:
 
     int dart_launch_count_ = 0;
 
-    InputInterface<bool> fire_command_; // from dart_guide, aimming state over will be true
     bool launch_ready_ = false;
 
     InputInterface<double> conveyor_current_velocity_;
     OutputInterface<double> conveyor_control_velocity_;
     OutputInterface<int> launch_count_;
+    InputInterface<bool> guide_ready_;
 
     int conveyor_direction_        = -1;
     bool push_block_moving_        = false;

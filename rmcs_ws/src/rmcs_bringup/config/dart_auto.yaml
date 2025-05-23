@@ -19,12 +19,13 @@ rmcs_executor:
 
       - rmcs_core::controller::pid::ErrorPidController -> yaw_angle_pid_controller
       - rmcs_core::controller::pid::PidController -> yaw_velocity_pid_controller
-      - rmcs_core::controller::pid::PidController -> pitch_angle_pid_controller
+      - rmcs_core::controller::pid::ErrorPidController -> pitch_angle_pid_controller
       - rmcs_core::controller::pid::CrossCoupledController -> pitch_velocity_sync_controller
       - rmcs_core::controller::pid::ErrorPidController -> pitch_left_velocity_pid_controller
       - rmcs_core::controller::pid::ErrorPidController -> pitch_right_velocity_pid_controller
 
       - rmcs_dart_guide::DartLauncherGuidance -> dart_guidance
+      - rmcs_dart_guide::LaunchDataProcess -> launch_data_controller
       - rmcs_dart_guide::DartCameraController -> camera_controller
       - rmcs_dart_guide::ImagePublisher -> camera_image_publisher
       - rmcs_dart_guide::ImagePublisher -> display_image_publisher
@@ -52,20 +53,23 @@ launch_controller:
 
 dart_guidance:
   ros__parameters:
-    default_pitch: 37.5
     guidelight_yaw_setpoint: 720.0
 
 camera_controller:
   ros__parameters:
-    invert_image: true
-    exposure_time: 1000
+    invert_image: false
+    exposure_time: 2500
     gain: 12.00
     L_H: 35.0
-    L_S: 0.0
-    L_V: 0.0
+    L_S: 15.0
+    L_V: 15.0
     U_H: 85.0
-    U_S: 255.0
-    U_V: 255.0
+    U_S: 240.0
+    U_V: 240.0
+
+launch_data_controller:
+  ros__parameters:
+    default_pitch: 37.5
 
 #broadcast
 camera_image_publisher:
@@ -179,9 +183,8 @@ yaw_velocity_pid_controller:
 
 pitch_angle_pid_controller:
   ros__parameters:
-    measurement: /dart/pitch_angle/current_angle
-    setpoint: /dart/pitch_angle/setpoint
-    control: /dart/pitch_angle/pid_output_velocity
+    measurement: /dart/pitch_angle/error
+    control: /dart/pitch_angle/control_velocity
     kp: 50.0
     ki: 0.001
     kd: 0.001
