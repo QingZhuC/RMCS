@@ -34,6 +34,7 @@ public:
         register_output("/dart/pitch_angle/error", pitch_angle_error_);
         register_output("/dart/pitch_angle/current_angle", pitch_angle_current_value_, nan);
         register_input("/dart_guide/guide_ready", dart_guide_ready_);
+        register_input("/dart_guide/stop_all", stop_all_);
 
         launch_time_ = std::chrono::steady_clock::now();
     }
@@ -43,16 +44,22 @@ public:
             auto delta_time_ =
                 std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - launch_time_);
             if (delta_time_.count() > 60) {
-                RCLCPP_INFO(logger_, "imu_ready");
+                RCLCPP_INFO(logger_, "imu_ready,current_angle:%lf", calc_pitch_angle());
                 imu_data_stable_ = true;
             } else {
+                *pitch_angle_error_ = nan;
                 return;
             }
         }
 
+        if (*stop_all_) {
+            *pitch_angle_error_ = nan;
+            return;
+        }
+
         if (*dart_guide_ready_) {
-            *pitch_angle_error_ = 0.0;
-            RCLCPP_INFO(logger_, "angle_locked");
+            *pitch_angle_error_ = nan;
+            // RCLCPP_INFO(logger_, "angle_locked");
             return;
         }
 
@@ -69,7 +76,7 @@ public:
         } else {
             // be careful mad imu !
             *pitch_angle_error_ = 0.0;
-            RCLCPP_INFO(logger_, "imu_data abnormal,imu_pitch:%lf", pitch_angle_value_);
+            // RCLCPP_INFO(logger_, "imu_data abnormal,imu_pitch:%lf", pitch_angle_value_);
             return;
         }
 
@@ -78,7 +85,9 @@ public:
         *pitch_angle_error_ = std::max(-pitch_velocity_limit_, std::min(pitch_error, pitch_velocity_limit_));
 
         //
-        RCLCPP_INFO(logger_, "current:%lf,set:%lf", *pitch_angle_current_value_, *dart_guide_pitch_setpoint_);
+        // RCLCPP_INFO(
+        //     logger_, "current:%lf,set:%lf,error:%lf", *pitch_angle_current_value_, *dart_guide_pitch_setpoint_,
+        //     *pitch_angle_error_);
     }
 
 private:
@@ -101,6 +110,7 @@ private:
     OutputInterface<double> pitch_angle_error_;
 
     InputInterface<bool> dart_guide_ready_;
+    InputInterface<bool> stop_all_;
     OutputInterface<double> pitch_angle_current_value_;
 
     double pitch_angle_upper_limit_, pitch_lower_lower_limit_, pitch_velocity_limit_;

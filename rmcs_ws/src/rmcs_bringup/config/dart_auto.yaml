@@ -30,6 +30,8 @@ rmcs_executor:
       - rmcs_dart_guide::ImagePublisher -> camera_image_publisher
       - rmcs_dart_guide::ImagePublisher -> display_image_publisher
 
+      - rmcs_core::controller::dartlauncher::MotorDataPublisher -> message_publisher
+
 dartlauncher_hardware:
   ros__parameters:
     usb_pid: -1
@@ -43,12 +45,12 @@ gantry_controller:
     pitch_init_angle: 37.5
     pitch_lower_limit: 25.0
     pitch_upper_limit: 39.0
-    pitch_velocity_limit: 20.0
+    pitch_velocity_limit: 5.0
 
 launch_controller:
   ros__parameters:
-    first_velocity: 640.0
-    second_velocity: 325.0
+    first_velocity: 660.0
+    second_velocity: 335.0
     timeout_limit_ms: 3000
 
 dart_guidance:
@@ -58,14 +60,14 @@ dart_guidance:
 camera_controller:
   ros__parameters:
     invert_image: false
-    exposure_time: 2500
+    exposure_time: 3500
     gain: 12.00
-    L_H: 35.0
+    L_H: 55.0
     L_S: 15.0
     L_V: 15.0
-    U_H: 85.0
-    U_S: 240.0
-    U_V: 240.0
+    U_H: 75.0
+    U_S: 255.0
+    U_V: 255.0
 
 launch_data_controller:
   ros__parameters:

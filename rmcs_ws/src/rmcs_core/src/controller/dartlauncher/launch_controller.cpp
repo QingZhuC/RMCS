@@ -44,9 +44,19 @@ public:
 
         register_output("/dart/launch_count", launch_count_, 0);
         register_input("/dart_guide/guide_ready", guide_ready_);
+        register_input("/dart_guide/stop_all", stop_all_);
+
+        launch_time_ = std::chrono::steady_clock::now();
     }
 
     void update() override {
+        if (*stop_all_) {
+            *conveyor_control_velocity_    = nan;
+            *first_fric_control_velocity_  = nan;
+            *second_fric_control_velocity_ = nan;
+            return;
+        }
+
         if (*guide_ready_) {
             *first_fric_control_velocity_  = *first_fric_working_velocity_;
             *second_fric_control_velocity_ = *second_fric_working_velocity_;
@@ -63,24 +73,39 @@ public:
             }
         }
 
-        dart_filling();
+        if (*launch_count_ == 0) {
+            auto current_timr = std::chrono::steady_clock::now();
+            if (std::chrono::duration_cast<std::chrono::seconds>(current_timr - launch_time_).count() < 5) {
+                *conveyor_control_velocity_ = conveyor_down_velocity_ / 2;
+                return;
+            } else {
+                *conveyor_control_velocity_ = nan;
+                launch_ready_               = true;
+                conveyor_direction_         = 0;
+            }
+        }
 
+        dart_filling();
         *launch_count_ = dart_launch_count_;
     }
 
 private:
     void dart_filling() {
-        if (abs(*conveyor_current_velocity_) > 100) {
+        if (abs(*conveyor_current_velocity_) > 50) {
             push_block_moving_ = true;
         }
 
-        if (*guide_ready_ && launch_ready_) {
-            *conveyor_control_velocity_ = conveyor_up_velocity_;
-            conveyor_direction_         = 1;
-        } // 上行
+        if (launch_ready_) {
+            if (*guide_ready_) {
+                *conveyor_control_velocity_ = conveyor_up_velocity_;
+                conveyor_direction_         = 1;
+            } else {
+                push_block_moving_ = false;
+            }
+        }
 
         if (conveyor_direction_ > 0) {
-            if (push_block_moving_ && *conveyor_current_velocity_ == 0) {
+            if (conveyor_direction_ > 0 && push_block_moving_ && *conveyor_current_velocity_ == 0) {
                 launch_ready_       = false;
                 dart_launch_count_  = dart_launch_count_ + 1;
                 conveyor_direction_ = -1;
@@ -94,10 +119,19 @@ private:
                 *conveyor_control_velocity_ = nan;
                 push_block_moving_          = false;
                 launch_ready_               = true;
+                conveyor_direction_         = 0;
             }
         } // 下行与准备
 
+        if (conveyor_direction_ == 0) {
+            *conveyor_control_velocity_ = nan;
+        }
+
         // TODO: if timeout
+
+        // RCLCPP_INFO(
+        //     logger_, "control:%lf,dir:%d,stable:%d,launch_ready:%d", *conveyor_control_velocity_,
+        //     conveyor_direction_, push_block_moving_ ? 1 : 0, launch_ready_ ? 1 : 0);
     }
 
     rclcpp::Logger logger_;
@@ -109,19 +143,19 @@ private:
     OutputInterface<double> first_fric_control_velocity_, second_fric_control_velocity_;
 
     int dart_launch_count_ = 0;
-
-    bool launch_ready_ = false;
+    bool launch_ready_     = false;
 
     InputInterface<double> conveyor_current_velocity_;
     OutputInterface<double> conveyor_control_velocity_;
     OutputInterface<int> launch_count_;
     InputInterface<bool> guide_ready_;
+    InputInterface<bool> stop_all_;
 
     int conveyor_direction_        = -1;
     bool push_block_moving_        = false;
     double conveyor_up_velocity_   = 200.0;
-    double conveyor_down_velocity_ = -600.0;
-    std::chrono::steady_clock::time_point timepoint_recorder_;
+    double conveyor_down_velocity_ = -400.0;
+    std::chrono::steady_clock::time_point launch_time_;
     std::chrono::milliseconds timeout_limit_;
 };
 } // namespace rmcs_core::controller::dartlauncher
