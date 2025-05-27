@@ -64,19 +64,19 @@ public:
         }
 
         auto pitch_angle_value_ = calc_pitch_angle();
-        if (pitch_angle_value_ > pitch_lower_lower_limit_ && pitch_angle_value_ < pitch_angle_upper_limit_) {
+        if (pitch_angle_value_ > pitch_lower_lower_limit_ - 5 && pitch_angle_value_ < pitch_angle_upper_limit_ + 5) {
             *pitch_angle_current_value_ = pitch_angle_value_;
 
         } else if (
-            180 - pitch_angle_value_ > pitch_lower_lower_limit_
-            && 180 - pitch_angle_value_ < pitch_angle_upper_limit_) {
+            180 - pitch_angle_value_ > pitch_lower_lower_limit_ - 5
+            && 180 - pitch_angle_value_ < pitch_angle_upper_limit_ + 5) {
             // TODO: 这个仅临时使用,解决一下意外出现的万向锁，后续换成四元数
             *pitch_angle_current_value_ = 180 - pitch_angle_value_;
 
         } else {
             // be careful mad imu !
             *pitch_angle_error_ = 0.0;
-            // RCLCPP_INFO(logger_, "imu_data abnormal,imu_pitch:%lf", pitch_angle_value_);
+            RCLCPP_INFO(logger_, "imu_data abnormal,imu_pitch:%lf", pitch_angle_value_);
             return;
         }
 
@@ -85,9 +85,9 @@ public:
         *pitch_angle_error_ = std::max(-pitch_velocity_limit_, std::min(pitch_error, pitch_velocity_limit_));
 
         //
-        // RCLCPP_INFO(
-        //     logger_, "current:%lf,set:%lf,error:%lf", *pitch_angle_current_value_, *dart_guide_pitch_setpoint_,
-        //     *pitch_angle_error_);
+        RCLCPP_INFO(
+            logger_, "current:%lf,set:%lf,error:%lf", *pitch_angle_current_value_, *dart_guide_pitch_setpoint_,
+            *pitch_angle_error_);
     }
 
 private:

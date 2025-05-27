@@ -86,7 +86,10 @@ public:
         }
 
         dart_filling();
+
+        // if (push_block_moving_) {
         *launch_count_ = dart_launch_count_;
+        // }
     }
 
 private:
@@ -130,8 +133,8 @@ private:
         // TODO: if timeout
 
         // RCLCPP_INFO(
-        //     logger_, "control:%lf,dir:%d,stable:%d,launch_ready:%d", *conveyor_control_velocity_,
-        //     conveyor_direction_, push_block_moving_ ? 1 : 0, launch_ready_ ? 1 : 0);
+        //     logger_, "control:%lf,dir:%d,stable:%d,launch_ready:%d,launch_count:%d", *conveyor_control_velocity_,
+        //     conveyor_direction_, push_block_moving_ ? 1 : 0, launch_ready_ ? 1 : 0, *launch_count_);
     }
 
     rclcpp::Logger logger_;

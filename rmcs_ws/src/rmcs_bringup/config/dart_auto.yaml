@@ -43,13 +43,13 @@ referee_status:
 gantry_controller:
   ros__parameters:
     pitch_init_angle: 37.5
-    pitch_lower_limit: 25.0
+    pitch_lower_limit: 23.0
     pitch_upper_limit: 39.0
     pitch_velocity_limit: 5.0
 
 launch_controller:
   ros__parameters:
-    first_velocity: 660.0
+    first_velocity: 665.0
     second_velocity: 335.0
     timeout_limit_ms: 3000
 
