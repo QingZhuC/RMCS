@@ -84,18 +84,26 @@ public:
                 conveyor_direction_         = 0;
             }
         }
-
         dart_filling();
 
-        // if (push_block_moving_) {
-        *launch_count_ = dart_launch_count_;
+        // if (dart_launch_count_ == 0) {
+        //     reset();
         // }
+
+        // dart_launch_control();
+        // update_conveyor_status();
+
+        *launch_count_ = dart_launch_count_;
+
+        // RCLCPP_INFO(
+        //     logger_, "control:%lf,dir:%d,stable:%d,launch_ready:%d,launch_count:%d", *conveyor_control_velocity_,
+        //     conveyor_direction_, conveyor_working_flag_ ? 1 : 0, launch_ready_ ? 1 : 0, *launch_count_);
     }
 
 private:
     void dart_filling() {
         if (abs(*conveyor_current_velocity_) > 50) {
-            push_block_moving_ = true;
+            conveyor_working_flag_ = true;
         }
 
         if (launch_ready_) {
@@ -103,24 +111,24 @@ private:
                 *conveyor_control_velocity_ = conveyor_up_velocity_;
                 conveyor_direction_         = 1;
             } else {
-                push_block_moving_ = false;
+                conveyor_working_flag_ = false;
             }
         }
 
         if (conveyor_direction_ > 0) {
-            if (conveyor_direction_ > 0 && push_block_moving_ && *conveyor_current_velocity_ == 0) {
-                launch_ready_       = false;
-                dart_launch_count_  = dart_launch_count_ + 1;
-                conveyor_direction_ = -1;
-                push_block_moving_  = false;
+            if (conveyor_direction_ > 0 && conveyor_working_flag_ && *conveyor_current_velocity_ == 0) {
+                launch_ready_          = false;
+                dart_launch_count_     = dart_launch_count_ + 1;
+                conveyor_direction_    = -1;
+                conveyor_working_flag_ = false;
             }
         } // 换向
 
         if (conveyor_direction_ < 0) {
             *conveyor_control_velocity_ = conveyor_down_velocity_;
-            if (push_block_moving_ && *conveyor_current_velocity_ == 0) {
+            if (conveyor_working_flag_ && *conveyor_current_velocity_ == 0) {
                 *conveyor_control_velocity_ = nan;
-                push_block_moving_          = false;
+                conveyor_working_flag_      = false;
                 launch_ready_               = true;
                 conveyor_direction_         = 0;
             }
@@ -155,7 +163,7 @@ private:
     InputInterface<bool> stop_all_;
 
     int conveyor_direction_        = -1;
-    bool push_block_moving_        = false;
+    bool conveyor_working_flag_    = false;
     double conveyor_up_velocity_   = 200.0;
     double conveyor_down_velocity_ = -400.0;
     std::chrono::steady_clock::time_point launch_time_;
