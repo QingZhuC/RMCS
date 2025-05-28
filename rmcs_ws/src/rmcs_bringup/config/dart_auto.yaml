@@ -3,7 +3,9 @@ rmcs_executor:
     update_rate: 1000.0
     components:
       - rmcs_core::hardware::DartLauncher ->dartlauncher_hardware
-      # - rmcs_core::referee::Status -> referee_status
+      - rmcs_core::referee::Status -> referee_status
+      - rmcs_core::referee::Command -> referee_command
+      - rmcs_core::referee::command::Interaction -> referee_interaction
 
       - rmcs_core::controller::dartlauncher::DartLaunchControl -> launch_controller
 
@@ -42,15 +44,15 @@ referee_status:
 
 gantry_controller:
   ros__parameters:
-    pitch_init_angle: 37.5
+    pitch_init_angle: 37.0
     pitch_lower_limit: 23.0
     pitch_upper_limit: 39.0
     pitch_velocity_limit: 5.0
 
 launch_controller:
   ros__parameters:
-    first_velocity: 665.0
-    second_velocity: 335.0
+    first_velocity: 460.0
+    second_velocity: 235.0
     timeout_limit_ms: 3000
 
 dart_guidance:
@@ -71,7 +73,7 @@ camera_controller:
 
 launch_data_controller:
   ros__parameters:
-    default_pitch: 37.5
+    default_pitch: 37.0
 
 #broadcast
 camera_image_publisher:
@@ -187,11 +189,11 @@ pitch_angle_pid_controller:
   ros__parameters:
     measurement: /dart/pitch_angle/error
     control: /dart/pitch_angle/control_velocity
-    kp: 50.0
+    kp: 100.0
     ki: 0.001
     kd: 0.001
-    integral_min: -5.0
-    integral_max: 5.0
+    integral_min: -10.0
+    integral_max: 10.0
 
 pitch_velocity_sync_controller:
   ros__parameters:
