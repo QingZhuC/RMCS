@@ -135,7 +135,7 @@ private:
         } // 下行与准备
 
         if (conveyor_direction_ == 0) {
-            *conveyor_control_velocity_ = nan;
+            *conveyor_control_velocity_ = 0;
         }
 
         // TODO: if timeout
