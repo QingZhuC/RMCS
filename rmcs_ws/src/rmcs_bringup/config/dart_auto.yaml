@@ -44,20 +44,35 @@ referee_status:
 
 gantry_controller:
   ros__parameters:
-    pitch_init_angle: 37.0
+    pitch_init_angle: 36.6
     pitch_lower_limit: 23.0
     pitch_upper_limit: 39.0
-    pitch_velocity_limit: 5.0
+    pitch_velocity_limit: 0.3
 
+## dart_type: A
+# launch_controller:
+#   ros__parameters:
+#     first_velocity: 660.0
+#     second_velocity: 330.0
+#     timeout_limit_ms: 3000
+
+## dart_type: B
 launch_controller:
   ros__parameters:
-    first_velocity: 460.0
-    second_velocity: 235.0
-    timeout_limit_ms: 3000
+    first_velocity: /dart_guide/first_fric_velocity_setpoint
+    second_velocity: /dart_guide/second_fric_velocity_setpoint
+    # first_velocity: 560.0
+    # second_velocity: 285.0
+    # first_velocity: 660.0
+    # second_velocity: 325.0
 
 dart_guidance:
   ros__parameters:
     guidelight_yaw_setpoint: 720.0
+    base_first_fric_control_velocity: 660.0
+    base_second_fric_control_velocity: 325.0
+    outpost_first_fric_control_velocity:  460.0
+    outpost_second_fric_control_velocity: 225.0
 
 camera_controller:
   ros__parameters:
@@ -172,7 +187,7 @@ yaw_angle_pid_controller:
   ros__parameters:
     measurement: /dart_guide/yaw_angle_error
     control: /dart/yaw_angle/control_velocity
-    kp: 0.3036926
+    kp: 0.5036926
     ki: 0.00
     kd: 0.009373434
 
@@ -191,7 +206,7 @@ pitch_angle_pid_controller:
     control: /dart/pitch_angle/control_velocity
     kp: 100.0
     ki: 0.001
-    kd: 0.001
+    kd: 0.000
     integral_min: -10.0
     integral_max: 10.0
 

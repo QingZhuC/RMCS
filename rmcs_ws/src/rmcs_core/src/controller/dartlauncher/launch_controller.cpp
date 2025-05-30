@@ -31,8 +31,6 @@ public:
             register_input(second_friction_parameter.as_string(), second_fric_working_velocity_);
         }
 
-        timeout_limit_ = std::chrono::milliseconds(get_parameter("timeout_limit_ms").as_int());
-
         register_output("/dart/first_friction/control_velocity", first_fric_control_velocity_, nan);
         register_output("/dart/second_friction/control_velocity", second_fric_control_velocity_, nan);
 
@@ -167,7 +165,6 @@ private:
     double conveyor_up_velocity_   = 200.0;
     double conveyor_down_velocity_ = -400.0;
     std::chrono::steady_clock::time_point launch_time_;
-    std::chrono::milliseconds timeout_limit_;
 };
 } // namespace rmcs_core::controller::dartlauncher
 

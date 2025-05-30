@@ -85,9 +85,9 @@ public:
         *pitch_angle_error_ = std::max(-pitch_velocity_limit_, std::min(pitch_error, pitch_velocity_limit_));
 
         //
-        RCLCPP_INFO(
-            logger_, "current:%lf,set:%lf,error:%lf", *pitch_angle_current_value_, *dart_guide_pitch_setpoint_,
-            *pitch_angle_error_);
+        // RCLCPP_INFO(
+        //     logger_, "current:%lf,set:%lf,error:%lf", *pitch_angle_current_value_, *dart_guide_pitch_setpoint_,
+        //     *pitch_angle_error_);
     }
 
 private:
