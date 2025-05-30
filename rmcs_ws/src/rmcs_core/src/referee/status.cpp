@@ -9,6 +9,7 @@
 #include <rmcs_utility/crc/dji_crc.hpp>
 #include <rmcs_utility/package_receive.hpp>
 #include <rmcs_utility/tick_timer.hpp>
+#include <robots_hp.hpp>
 #include <serial_interface.hpp>
 
 #include "referee/frame.hpp"
@@ -34,7 +35,8 @@ public:
         register_output("/referee/chassis/power_limit", robot_chassis_power_limit_, 0.0);
         register_output("/referee/chassis/power", robot_chassis_power_, 0.0);
         register_output("/referee/chassis/buffer_energy", robot_buffer_energy_, 60.0);
-        register_output("/referee/robots/hp", robots_hp_);
+        register_output("/referee/outpost_hp/red", red_outpost_hp_);
+        register_output("/referee/outpost_hp/blue", blue_outpost_hp_);
         register_output("/referee/shooter/bullet_allowance", robot_bullet_allowance_, false);
 
         register_output("/referee/shooter/initial_speed", robot_initial_speed_, false);
@@ -125,7 +127,12 @@ private:
             game_status_watchdog_.reset(5'000);
     }
 
-    void update_game_robot_hp() {}
+    void update_game_robot_hp() {
+        auto& data = reinterpret_cast<GameRobotHp&>(frame_.body.data);
+
+        *red_outpost_hp_  = data.red_outpost;
+        *blue_outpost_hp_ = data.blue_outpost;
+    }
 
     void update_robot_status() {
         if (*game_stage_ == rmcs_msgs::GameStage::STARTED)
@@ -200,7 +207,8 @@ private:
     OutputInterface<double> robot_chassis_power_;
     OutputInterface<double> robot_buffer_energy_;
 
-    OutputInterface<GameRobotHp> robots_hp_;
+    OutputInterface<uint16_t> red_outpost_hp_;
+    OutputInterface<uint16_t> blue_outpost_hp_;
     OutputInterface<uint16_t> robot_bullet_allowance_;
 
     OutputInterface<float> robot_initial_speed_;
