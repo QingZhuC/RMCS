@@ -1,5 +1,4 @@
 #include <algorithm>
-#include <boost/graph/graph_traits.hpp>
 #include <chrono>
 #include <eigen3/Eigen/Dense>
 #include <eigen3/Eigen/src/Core/Matrix.h>
