@@ -11,9 +11,13 @@
 
 #include <rmcs_description/tf_description.hpp>
 
+#include "std_msgs/msg/u_int8_multi_array.hpp"
+#include "tf2_eigen/tf2_eigen.hpp"
 #include <rmcs_executor/component.hpp>
+#include <rmcs_msgs/msg/auto_aim_sync.hpp>
 #include <serial_interface.hpp>
 #include <std_msgs/msg/int32.hpp>
+
 namespace rmcs_core::hardware {
 
 class SteeringInfantry
@@ -117,6 +121,9 @@ private:
                   steeringInfantry, steeringInfantry_command, "/gimbal/right_friction")
             , transmit_buffer_(*this, 32)
             , event_thread_([this]() { handle_events(); }) {
+            auto_aim_sync_publisher_ =
+                steeringInfantry.create_publisher<std_msgs::msg::UInt8MultiArray>(
+                    "/alliance_auto_aim/sync", 10);
             gimbal_pitch_motor_.configure(
                 device::LkMotor::Config{device::LkMotor::Type::MG4010E_I10}.set_encoder_zero_point(
                     static_cast<int>(
@@ -214,13 +221,42 @@ private:
         void accelerometer_receive_callback(int16_t x, int16_t y, int16_t z) override {
             bmi088_.store_accelerometer_status(x, y, z);
         }
+
         void gyroscope_receive_callback(int16_t x, int16_t y, int16_t z) override {
             bmi088_.store_gyroscope_status(x, y, z);
         }
+
+        void camera_capturer_callback(bool status) override {
+            const auto time_stamp = std::chrono::steady_clock::now().time_since_epoch().count();
+            const auto camera_to_gimbal =
+                tf_->get_transform<rmcs_description::PitchLink, rmcs_description::CameraLink>()
+                    .inverse();
+            const auto gimbal_to_muzzle =
+                tf_->get_transform<rmcs_description::PitchLink, rmcs_description::MuzzleLink>();
+
+            std::vector<uint8_t> buffer;
+            buffer.resize(sizeof(time_stamp) + sizeof(camera_to_gimbal) + sizeof(gimbal_to_muzzle));
+            std::size_t written = 0;
+
+            const auto write_in_buffer = [&written, &buffer](const auto& data) {
+                std::memcpy(buffer.data() + written, &data, sizeof(data));
+                written += sizeof(data);
+            };
+            write_in_buffer(time_stamp);
+            write_in_buffer(camera_to_gimbal);
+            write_in_buffer(gimbal_to_muzzle);
+
+            std_msgs::msg::UInt8MultiArray msg;
+            msg.data = std::move(buffer);
+            auto_aim_sync_publisher_->publish(msg);
+        }
+
         OutputInterface<rmcs_description::Tf>& tf_;
 
         OutputInterface<double> gimbal_yaw_velocity_bmi088_;
         OutputInterface<double> gimbal_pitch_velocity_bmi088_;
+
+        rclcpp::Publisher<std_msgs::msg::UInt8MultiArray>::SharedPtr auto_aim_sync_publisher_;
 
         device::Bmi088 bmi088_;
         device::LkMotor gimbal_pitch_motor_;
