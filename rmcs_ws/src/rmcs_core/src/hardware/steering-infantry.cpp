@@ -251,8 +251,6 @@ private:
             const auto gimbal_to_muzzle = Eigen::Transform<double, 3, 1>{fast_tf::lookup_transform<
                 rmcs_description::PitchLink, rmcs_description::MuzzleLink>(*tf_)};
 
-            // const auto gimbal_to_muzzle = fast_tf::lookup_transform<
-            //     rmcs_description::PitchLink, rmcs_description::MuzzleLink>(*tf_);
             Eigen::Quaterniond camera_to_gimbal_rotation{camera_to_gimbal.rotation()};
             Eigen::Quaterniond gimbal_to_muzzle_rotation{gimbal_to_muzzle.rotation()};
 
