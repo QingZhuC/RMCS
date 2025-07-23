@@ -226,28 +226,51 @@ private:
             bmi088_.store_gyroscope_status(x, y, z);
         }
 
+        struct alignas(8) SyncData {
+            uint64_t time_stamp;
+            double camera_to_gimbal_translation_x;
+            double camera_to_gimbal_translation_y;
+            double camera_to_gimbal_translation_z;
+            double camera_to_gimbal_rotation_w;
+            double camera_to_gimbal_rotation_x;
+            double camera_to_gimbal_rotation_y;
+            double camera_to_gimbal_rotation_z;
+            double gimbal_to_muzzle_translation_x;
+            double gimbal_to_muzzle_translation_y;
+            double gimbal_to_muzzle_translation_z;
+            double gimbal_to_muzzle_rotation_w;
+            double gimbal_to_muzzle_rotation_x;
+            double gimbal_to_muzzle_rotation_y;
+            double gimbal_to_muzzle_rotation_z;
+        };
+
         void camera_capturer_callback(bool status) override {
             const auto time_stamp = std::chrono::steady_clock::now().time_since_epoch().count();
-            const auto camera_to_gimbal =
-                tf_->get_transform<rmcs_description::PitchLink, rmcs_description::CameraLink>()
-                    .inverse();
-            const auto gimbal_to_muzzle =
-                tf_->get_transform<rmcs_description::PitchLink, rmcs_description::MuzzleLink>();
+            const auto camera_to_gimbal = fast_tf::lookup_transform<
+                rmcs_description::CameraLink, rmcs_description::PitchLink>(*tf_);
+            const auto gimbal_to_muzzle = Eigen::Transform<double, 3, 1>{fast_tf::lookup_transform<
+                rmcs_description::PitchLink, rmcs_description::MuzzleLink>(*tf_)};
+
+            // const auto gimbal_to_muzzle = fast_tf::lookup_transform<
+            //     rmcs_description::PitchLink, rmcs_description::MuzzleLink>(*tf_);
+            Eigen::Quaterniond camera_to_gimbal_rotation{camera_to_gimbal.rotation()};
+            Eigen::Quaterniond gimbal_to_muzzle_rotation{gimbal_to_muzzle.rotation()};
 
             std::vector<uint8_t> buffer;
-            buffer.resize(sizeof(time_stamp) + sizeof(camera_to_gimbal) + sizeof(gimbal_to_muzzle));
-            std::size_t written = 0;
-
-            const auto write_in_buffer = [&written, &buffer](const auto& data) {
-                std::memcpy(buffer.data() + written, &data, sizeof(data));
-                written += sizeof(data);
-            };
-            write_in_buffer(time_stamp);
-            write_in_buffer(camera_to_gimbal);
-            write_in_buffer(gimbal_to_muzzle);
+            buffer.resize(sizeof(SyncData));
+            SyncData sync_data{
+                std::bit_cast<uint64_t>(time_stamp), camera_to_gimbal.translation().x(),
+                camera_to_gimbal.translation().y(),  camera_to_gimbal.translation().z(),
+                camera_to_gimbal_rotation.w(),       camera_to_gimbal_rotation.x(),
+                camera_to_gimbal_rotation.y(),       camera_to_gimbal_rotation.z(),
+                gimbal_to_muzzle.translation().x(),  gimbal_to_muzzle.translation().y(),
+                gimbal_to_muzzle.translation().z(),  gimbal_to_muzzle_rotation.w(),
+                gimbal_to_muzzle_rotation.x(),       gimbal_to_muzzle_rotation.y(),
+                gimbal_to_muzzle_rotation.z()};
+            std::memcpy(buffer.data(), &sync_data, sizeof(SyncData));
 
             std_msgs::msg::UInt8MultiArray msg;
-            msg.data = std::move(buffer);
+            msg.set__data(buffer);
             auto_aim_sync_publisher_->publish(msg);
         }
 
