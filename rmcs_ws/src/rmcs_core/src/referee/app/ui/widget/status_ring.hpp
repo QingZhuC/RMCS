@@ -1,12 +1,12 @@
 #pragma once
 
+#include <algorithm>
 #include <cmath>
 #include <cstdint>
 #include <cstring>
 
-#include <algorithm>
 #include <bit>
-#include <numbers>
+#include <tuple>
 
 #include <rmcs_msgs/robot_color.hpp>
 
@@ -16,6 +16,8 @@ namespace rmcs_core::referee::app::ui {
 
 class StatusRing {
 public:
+    StatusRing(
+        double supercap_limit, double battery_limit, double friction_limit, int16_t bullet_limit) {
     StatusRing(
         double supercap_limit, double battery_limit, double friction_limit, int16_t bullet_limit) {
         supercap_status_.set_x(x_center);
@@ -187,8 +189,6 @@ public:
     }
 
     void update_supercap(double value, bool enable) {
-        supercap_voltage_.set_value(value);
-
         auto angle = 275 + calculate_angle(value, 10.5, supercap_limit_) + 1;
         supercap_status_.set_angle_end(static_cast<uint16_t>(angle));
 
@@ -202,8 +202,6 @@ public:
     }
 
     void update_battery_power(double value) {
-        battery_voltage_.set_value(value);
-
         auto angle = 265 - calculate_angle(value, 20, 25.7) - 1;
         battery_status_.set_angle_start(static_cast<uint16_t>(angle));
 
@@ -232,16 +230,13 @@ public:
     void update_bullet_allowance(uint16_t value) {
         auto allowance = std::bit_cast<int16_t>(value);
 
-        // real number
-        bullet_allowance_.set_value(allowance);
-
         // limit ring
         auto angle = 95 + calculate_angle(allowance, 0, bullet_limit_) + 1;
         bullet_status_.set_angle_end(static_cast<uint16_t>(angle));
 
-        if (allowance < 25) {
+        if (allowance < bullet_limit_ / 8) {
             bullet_status_.set_color(Shape::Color::PINK);
-        } else if (allowance < 50) {
+        } else if (allowance < bullet_limit_ / 4) {
             bullet_status_.set_color(Shape::Color::ORANGE);
         } else {
             bullet_status_.set_color(Shape::Color::GREEN);
@@ -308,15 +303,12 @@ private:
 
     // Dynamic part
     Arc supercap_status_;
-    Float supercap_voltage_;
 
     Arc battery_status_;
-    Float battery_voltage_;
 
     Arc friction_wheel_speed_;
 
     Arc bullet_status_;
-    Integer bullet_allowance_;
 
     // Static part
     Line line_left_center_;

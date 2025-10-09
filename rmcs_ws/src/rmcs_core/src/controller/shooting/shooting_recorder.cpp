@@ -3,7 +3,7 @@
 #include <rclcpp/node.hpp>
 #include <rmcs_executor/component.hpp>
 
-namespace rmcs_core::controller::gimbal {
+namespace rmcs_core::controller::shooting {
 
 class ShootingRecorder
     : public rmcs_executor::Component
@@ -20,7 +20,7 @@ public:
 
         register_input("/referee/shooter/initial_speed", initial_speed_);
         register_input("/referee/shooter/shoot_timestamp", shoot_timestamp_);
-        register_input("friction_wheels/temperature", fractional_temperature_);
+        register_input("/friction_wheels/temperature", fractional_temperature_);
 
         if (friction_wheel_count_ == 2) {
             const auto topic = std::array{
@@ -124,8 +124,8 @@ private:
     }
 };
 
-} // namespace rmcs_core::controller::gimbal
+} // namespace rmcs_core::controller::shooting
 
 #include <pluginlib/class_list_macros.hpp>
 
-PLUGINLIB_EXPORT_CLASS(rmcs_core::controller::gimbal::ShootingRecorder, rmcs_executor::Component)
+PLUGINLIB_EXPORT_CLASS(rmcs_core::controller::shooting::ShootingRecorder, rmcs_executor::Component)

@@ -68,8 +68,6 @@ public:
 
         auto_spin_enable_ = get_parameter("auto_spin").as_bool();
     }
-
-    void before_updating() override {
         if (!gimbal_yaw_angle_.ready()) {
             gimbal_yaw_angle_.make_and_bind_directly(0.0);
             RCLCPP_WARN(get_logger(), "Failed to fetch \"/gimbal/yaw/angle\". Set to 0.0.");
@@ -78,33 +76,6 @@ public:
             gimbal_yaw_angle_error_.make_and_bind_directly(0.0);
             RCLCPP_WARN(
                 get_logger(), "Failed to fetch \"/gimbal/yaw/control_angle_error\". Set to 0.0.");
-        }
-
-        bool supercap_free = false;
-        if (!supercap_voltage_.ready()) {
-            supercap_voltage_.make_and_bind_directly(0.0);
-            supercap_free = true;
-        }
-        if (!supercap_enabled_.ready()) {
-            supercap_enabled_.make_and_bind_directly(false);
-            supercap_free = true;
-        }
-        if (supercap_free)
-            RCLCPP_INFO(get_logger(), "Works in supercap-free mode.");
-
-        if (!chassis_power_limit_referee_.ready()) {
-            chassis_power_limit_referee_.make_and_bind_directly(safe_chassis_power_limit);
-            RCLCPP_WARN(
-                get_logger(),
-                "Failed to fetch \"/referee/chassis/power_limit\". Set to safe value %.1f.",
-                safe_chassis_power_limit);
-        }
-        if (!chassis_buffer_energy_referee_.ready()) {
-            chassis_buffer_energy_referee_.make_and_bind_directly(buffer_energy_base_line);
-            RCLCPP_WARN(
-                get_logger(),
-                "Failed to fetch \"/referee/chassis/buffer_energy\". Set to safe value %.1f.",
-                buffer_energy_base_line);
         }
     }
 
@@ -161,7 +132,6 @@ public:
             }
 
             update_velocity_control();
-            update_power_limit_control();
         } while (false);
 
         last_switch_right_ = switch_right;
@@ -173,18 +143,13 @@ public:
         *mode_ = rmcs_msgs::ChassisMode::AUTO;
 
         *chassis_control_velocity_ = {nan, nan, nan};
-
-        *supercap_control_enabled_    = false;
-        *supercap_charge_power_limit_ = 0.0;
-        *chassis_control_power_limit_ = 0.0;
     }
 
     void update_velocity_control() {
         auto translational_velocity = update_translational_velocity_control();
         auto angular_velocity       = update_angular_velocity_control();
 
-        *chassis_control_velocity_ = {
-            translational_velocity.x(), translational_velocity.y(), angular_velocity};
+        chassis_control_velocity_->vector << translational_velocity, angular_velocity;
     }
 
     Eigen::Vector2d update_translational_velocity_control() {
@@ -199,11 +164,12 @@ public:
             translational_velocity.normalize();
 
         translational_velocity *= translational_velocity_max;
+
         return translational_velocity;
     }
 
     double update_angular_velocity_control() {
-        double angular_velocity      = nan;
+        double angular_velocity      = 0.0;
         double chassis_control_angle = nan;
 
         switch (*mode_) {

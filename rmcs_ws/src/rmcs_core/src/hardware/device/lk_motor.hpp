@@ -19,9 +19,12 @@ public:
         status_component.register_output(name_prefix + "/angle", angle_, 0.0);
         status_component.register_output(name_prefix + "/velocity", velocity_, 0.0);
         status_component.register_output(name_prefix + "/torque", torque_, 0.0);
+        status_component.register_output(name_prefix + "/temperature", temperature_, 0.0);
         status_component.register_output(name_prefix + "/max_torque", max_torque_, 0.0);
 
-        command_component.register_input(
+        command_component.register_input( //
+            name_prefix + "/control_torque", control_torque_, false);
+        command_component.register_input( //
             name_prefix + "/control_velocity", control_velocity_, false);
         command_component.register_input(name_prefix + "/control_torque", control_torque_, false);
         command_component.register_input(name_prefix + "/motor_status", motor_status_, false);
@@ -42,9 +45,17 @@ public:
 
     void update_status() {
         librmcs::device::LkMotor::update_status();
-        *angle_    = angle();
+        *angle_ = angle();
         *velocity_ = velocity();
-        *torque_   = torque();
+        *torque_ = torque();
+        *temperature_ = temperature();
+    }
+
+    double control_torque() const {
+        if (control_torque_.ready()) [[likely]]
+            return *control_torque_;
+        else
+            return std::numeric_limits<double>::quiet_NaN();
     }
 
     double control_velocity() const {
@@ -87,11 +98,15 @@ private:
     
 
 private:
+    static constexpr double nan_ = std::numeric_limits<double>::quiet_NaN();
+
     rmcs_executor::Component::OutputInterface<double> angle_;
     rmcs_executor::Component::OutputInterface<double> velocity_;
     rmcs_executor::Component::OutputInterface<double> torque_;
+    rmcs_executor::Component::OutputInterface<double> temperature_;
     rmcs_executor::Component::OutputInterface<double> max_torque_;
 
+    rmcs_executor::Component::InputInterface<double> control_torque_;
     rmcs_executor::Component::InputInterface<double> control_velocity_;
     rmcs_executor::Component::InputInterface<double> control_torque_;
     rmcs_executor::Component::InputInterface<rmcs_msgs::LkmotorStatus> motor_status_;

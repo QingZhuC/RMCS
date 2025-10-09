@@ -17,6 +17,9 @@
   <class type="rmcs_core::controller::chassis::ChassisController" base_class_type="rmcs_executor::Component">
     <description>Test plugin.</description>
   </class>
+  <class type="rmcs_core::controller::chassis::ChassisPowerController" base_class_type="rmcs_executor::Component">
+    <description>Test plugin.</description>
+  </class>
   <class type="rmcs_core::controller::chassis::OmniWheelController" base_class_type="rmcs_executor::Component">
     <description>Test plugin.</description>
   </class>
@@ -26,10 +29,10 @@
   <class type="rmcs_core::controller::chassis::PowerController" base_class_type="rmcs_executor::Component">
     <description>Test plugin.</description>
   </class>
-  <class type="rmcs_core::controller::gimbal::GimbalController" base_class_type="rmcs_executor::Component">
+  <class type="rmcs_core::controller::shooting::BulletFeederController17mm" base_class_type="rmcs_executor::Component">
     <description>Test plugin.</description>
   </class>
-  <class type="rmcs_core::controller::gimbal::ShootingController" base_class_type="rmcs_executor::Component">
+  <class type="rmcs_core::controller::shooting::BulletFeederController42mm" base_class_type="rmcs_executor::Component">
     <description>Test plugin.</description>
   </class>
   <class type="rmcs_core::controller::gimbal::ShooterTest" base_class_type="rmcs_executor::Component">
@@ -46,6 +49,9 @@
   </class>
   <class type="rmcs_core::controller::pid::ErrorPidController" base_class_type="rmcs_executor::Component">
     <description>Test plugin.</description>
+  </class>
+  <class type="rmcs_core::controller::pid::FeedforwardPidController" base_class_type="rmcs_executor::Component">
+    <description>Feedforward pid controller.</description>
   </class>
   <class type="rmcs_core::broadcaster::TfBroadcaster" base_class_type="rmcs_executor::Component">
     <description>Test plugin.</description>

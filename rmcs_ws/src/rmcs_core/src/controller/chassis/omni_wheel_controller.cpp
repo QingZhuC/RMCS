@@ -12,7 +12,9 @@
 #include <rmcs_description/tf_description.hpp>
 #include <rmcs_executor/component.hpp>
 #include <rmcs_msgs/chassis_mode.hpp>
+#include <rmcs_utility/eigen_structured_bindings.hpp>
 
+#include "controller/chassis/qcp_solver.hpp"
 #include "controller/pid/matrix_pid_calculator.hpp"
 #include "controller/pid/pid_calculator.hpp"
 
@@ -27,8 +29,9 @@ public:
         : Node(
               get_component_name(),
               rclcpp::NodeOptions{}.automatically_declare_parameters_from_overrides(true))
-        , translational_velocity_pid_calculator_(100.0, 0.0, 0.0)
-        , angular_velocity_pid_calculator_(100.0, 0.0, 0.0) {
+        , translational_velocity_pid_calculator_(5.0, 0.0, 0.0)
+        , angular_velocity_pid_calculator_(5.0, 0.0, 0.0)
+        , wheel_velocity_pid_(0.6, 0.0, 0.0) {
 
         register_input("/chassis/left_front_wheel/max_torque", wheel_motor_max_control_torque_);
         register_input("/chassis/left_front_wheel/velocity", left_front_velocity_);
@@ -568,6 +571,10 @@ private:
 
     pid::MatrixPidCalculator<2> translational_velocity_pid_calculator_;
     pid::PidCalculator angular_velocity_pid_calculator_;
+
+    pid::MatrixPidCalculator<4> wheel_velocity_pid_;
+
+    QcpSolver qcp_solver_;
 
     OutputInterface<double> left_front_control_torque_;
     OutputInterface<double> left_back_control_torque_;

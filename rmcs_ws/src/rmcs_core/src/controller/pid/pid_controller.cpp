@@ -3,7 +3,8 @@
 #include <rclcpp/rclcpp.hpp>
 #include <rmcs_executor/component.hpp>
 
-#include "pid_calculator.hpp"
+#include "controller/pid/pid_calculator.hpp"
+#include "controller/pid/smart_input.hpp"
 
 namespace rmcs_core::controller::pid {
 
@@ -15,6 +16,9 @@ public:
         : Node(
               get_component_name(),
               rclcpp::NodeOptions{}.automatically_declare_parameters_from_overrides(true))
+        , measurement_(*this, "measurement")
+        , setpoint_(*this, "setpoint")
+        , feedforward_(*this, "feedforward", 0.0)
         , pid_calculator_(
               get_parameter("kp").as_double(), get_parameter("ki").as_double(),
               get_parameter("kd").as_double()) {

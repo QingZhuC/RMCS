@@ -8,6 +8,8 @@ namespace rmcs_core::controller::pid {
 
 class PidCalculator {
 public:
+    PidCalculator() { reset(); };
+
     PidCalculator(double kp, double ki, double kd)
         : kp(kp)
         , ki(ki)
@@ -54,6 +56,7 @@ public:
 public:
     double kp, ki, kd;
     double integral_min = -inf, integral_max = inf;
+    double integral_split_min = -inf, integral_split_max = inf;
     double integral_split_min = -inf, integral_split_max = inf;
     double output_min = -inf, output_max = inf;
     double deadzone_min = 0.0, deadzone_max = 0.0;  

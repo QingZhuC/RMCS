@@ -1,6 +1,5 @@
 #include <memory>
 
-#include <librmcs/client/cboard.hpp>
 #include <rclcpp/node.hpp>
 #include <rmcs_description/tf_description.hpp>
 #include <rmcs_executor/component.hpp>
@@ -28,6 +27,19 @@ public:
         , logger_(get_logger())
         , infantry_command_(
               create_partner_component<InfantryCommand>(get_component_name() + "_command", *this))
+        , chassis_wheel_motors_(
+              {*this, *infantry_command_, "/chassis/left_front_wheel"},
+              {*this, *infantry_command_, "/chassis/right_front_wheel"},
+              {*this, *infantry_command_, "/chassis/right_back_wheel"},
+              {*this, *infantry_command_, "/chassis/left_back_wheel"})
+        , supercap_(*this, *infantry_command_)
+        , gimbal_yaw_motor_(*this, *infantry_command_, "/gimbal/yaw")
+        , gimbal_pitch_motor_(*this, *infantry_command_, "/gimbal/pitch")
+        , gimbal_left_friction_(*this, *infantry_command_, "/gimbal/left_friction")
+        , gimbal_right_friction_(*this, *infantry_command_, "/gimbal/right_friction")
+        , gimbal_bullet_feeder_(*this, *infantry_command_, "/gimbal/bullet_feeder")
+        , dr16_{*this}
+        , bmi088_(1000, 0.2, 0.0)
         , transmit_buffer_(*this, 32)
         , event_thread_([this]() { handle_events(); }) {
 
@@ -163,13 +175,13 @@ private:
     }
 
     void update_imu() {
-        imu_.update_status();
-        Eigen::Quaterniond gimbal_imu_pose{imu_.q0(), imu_.q1(), imu_.q2(), imu_.q3()};
-        tf_->set_transform<rmcs_description::ImuLink, rmcs_description::OdomImu>(
+        bmi088_.update_status();
+        Eigen::Quaterniond gimbal_imu_pose{bmi088_.q0(), bmi088_.q1(), bmi088_.q2(), bmi088_.q3()};
+        tf_->set_transform<rmcs_description::PitchLink, rmcs_description::OdomImu>(
             gimbal_imu_pose.conjugate());
 
-        *gimbal_yaw_velocity_imu_   = imu_.gz();
-        *gimbal_pitch_velocity_imu_ = imu_.gx();
+        *gimbal_yaw_velocity_imu_   = bmi088_.gz();
+        *gimbal_pitch_velocity_imu_ = bmi088_.gy();
     }
 
     void gimbal_calibrate_subscription_callback(std_msgs::msg::Int32::UniquePtr) {
@@ -255,11 +267,11 @@ protected:
     }
 
     void accelerometer_receive_callback(int16_t x, int16_t y, int16_t z) override {
-        imu_.store_accelerometer_status(x, y, z);
+        bmi088_.store_accelerometer_status(x, y, z);
     }
 
     void gyroscope_receive_callback(int16_t x, int16_t y, int16_t z) override {
-        imu_.store_gyroscope_status(x, y, z);
+        bmi088_.store_gyroscope_status(x, y, z);
     }
 
 private:
@@ -292,13 +304,12 @@ private:
     device::LkMotor gimbal_yaw_motor_{*this, *infantry_command_, "/gimbal/yaw"};
     device::LkMotor gimbal_pitch_motor_{*this, *infantry_command_, "/gimbal/pitch"};
 
-    device::DjiMotor gimbal_left_friction_{*this, *infantry_command_, "/gimbal/left_friction"};
-    device::DjiMotor gimbal_right_friction_{*this, *infantry_command_, "/gimbal/right_friction"};
-    device::DjiMotor gimbal_bullet_feeder_{*this, *infantry_command_, "/gimbal/bullet_feeder"};
+    device::DjiMotor gimbal_left_friction_;
+    device::DjiMotor gimbal_right_friction_;
+    device::DjiMotor gimbal_bullet_feeder_;
 
-    device::Dr16 dr16_{*this};
-
-    device::Bmi088 imu_{1000, 0.2, 0.0};
+    device::Dr16 dr16_;
+    device::Bmi088 bmi088_;
 
     OutputInterface<double> gimbal_yaw_velocity_imu_;
     OutputInterface<double> gimbal_pitch_velocity_imu_;
@@ -308,7 +319,6 @@ private:
     OutputInterface<rmcs_msgs::SerialInterface> referee_serial_;
 
     librmcs::client::CBoard::TransmitBuffer transmit_buffer_;
-
     std::thread event_thread_;
 
     OutputInterface<double>bullet_feeder_control_torque;

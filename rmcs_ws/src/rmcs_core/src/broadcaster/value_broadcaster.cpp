@@ -11,9 +11,8 @@ class ValueBroadcaster
     , public rclcpp::Node {
 public:
     ValueBroadcaster()
-        : Node{
-              get_component_name(),
-              rclcpp::NodeOptions{}.automatically_declare_parameters_from_overrides(true)} {
+        : Node{get_component_name()} {
+        declare_parameter<std::vector<std::string>>("forward_list", std::vector<std::string>{});
         parameter_subscriber_ = std::make_unique<rclcpp::ParameterEventHandler>(this);
         parameter_callback_   = parameter_subscriber_->add_parameter_callback(
             "forward_list",

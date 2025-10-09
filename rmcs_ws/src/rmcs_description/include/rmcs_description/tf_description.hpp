@@ -1,6 +1,7 @@
 #pragma once
 
 #include <fast_tf/fast_tf.hpp>
+
 #include <fast_tf/impl/link.hpp>
 
 namespace rmcs_description {
@@ -24,13 +25,14 @@ struct CameraLink : fast_tf::Link<CameraLink> {
     static constexpr char name[] = "camera_link";
 };
 
+struct ViewerLink : fast_tf::Link<ViewerLink> {
+    static constexpr char name[] = "viewer_link";
+};
+
 struct TransmitterLink : fast_tf::Link<TransmitterLink> {
     static constexpr char name[] = "transmitter_link";
 };
 
-struct ImuLink : fast_tf::Link<ImuLink> {
-    static constexpr char name[] = "imu_link";
-};
 struct OdomImu : fast_tf::Link<OdomImu> {
     static constexpr char name[] = "odom_imu";
 };
@@ -70,57 +72,69 @@ struct OmniLinkRight : fast_tf::Link<OmniLinkRight> {
 } // namespace rmcs_description
 
 template <>
-struct fast_tf::Joint<rmcs_description::YawLink> {
-    using Parent                = rmcs_description::GimbalCenterLink;
-    Eigen::AngleAxisd transform = {0, Eigen::Vector3d::UnitZ()};
-    void set_state(double angle) { transform.angle() = angle; }
-};
-
-template <>
-struct fast_tf::Joint<rmcs_description::PitchLink> {
-    using Parent                = rmcs_description::YawLink;
-    Eigen::AngleAxisd transform = {0, Eigen::Vector3d::UnitY()};
-    void set_state(double angle) { transform.angle() = angle; }
-};
-
-template <>
-struct fast_tf::Joint<rmcs_description::MuzzleLink> {
-    using Parent                   = rmcs_description::PitchLink;
-    Eigen::Translation3d transform = Eigen::Translation3d{0.059, 0, 0};
-};
-
-template <>
-struct fast_tf::Joint<rmcs_description::TransmitterLink> {
-    using Parent                   = rmcs_description::PitchLink;
-    Eigen::Translation3d transform = Eigen::Translation3d::Identity();
-};
-
-template <>
-struct fast_tf::Joint<rmcs_description::CameraLink> {
-    using Parent                = rmcs_description::PitchLink;
-    Eigen::Isometry3d transform = Eigen::Isometry3d::Identity();
-};
-
-template <>
-struct fast_tf::Joint<rmcs_description::ImuLink> {
-    using Parent                 = rmcs_description::PitchLink;
-    Eigen::Quaterniond transform = Eigen::Quaterniond::Identity();
-};
-
-template <>
-struct fast_tf::Joint<rmcs_description::OdomImu> {
-    using Parent                 = rmcs_description::ImuLink;
-    Eigen::Quaterniond transform = Eigen::Quaterniond::Identity();
-};
-
-template <>
-struct fast_tf::Joint<rmcs_description::GimbalCenterLink> {
+struct fast_tf::Joint<rmcs_description::GimbalCenterLink> : fast_tf::ModificationTrackable {
     using Parent                   = rmcs_description::BaseLink;
     Eigen::Translation3d transform = Eigen::Translation3d::Identity();
 };
 
 template <>
-struct fast_tf::Joint<rmcs_description::LeftFrontWheelLink> {
+struct fast_tf::Joint<rmcs_description::YawLink> : fast_tf::ModificationTrackable {
+    using Parent = rmcs_description::GimbalCenterLink;
+
+    void set_state(double angle) { angle_ = angle; }
+    auto get_transform() const { return Eigen::AngleAxisd{angle_, Eigen::Vector3d::UnitZ()}; }
+
+private:
+    double angle_;
+};
+
+template <>
+struct fast_tf::Joint<rmcs_description::PitchLink> : fast_tf::ModificationTrackable {
+    using Parent = rmcs_description::YawLink;
+
+    void set_state(double angle) { angle_ = angle; }
+    auto get_transform() const { return Eigen::AngleAxisd{angle_, Eigen::Vector3d::UnitY()}; }
+
+private:
+    double angle_;
+};
+
+template <>
+struct fast_tf::Joint<rmcs_description::MuzzleLink> : fast_tf::ModificationTrackable {
+    using Parent                   = rmcs_description::PitchLink;
+    Eigen::Translation3d transform = Eigen::Translation3d::Identity();
+};
+
+template <>
+struct fast_tf::Joint<rmcs_description::TransmitterLink> : fast_tf::ModificationTrackable {
+    using Parent                   = rmcs_description::PitchLink;
+    Eigen::Translation3d transform = Eigen::Translation3d::Identity();
+};
+
+template <>
+struct fast_tf::Joint<rmcs_description::CameraLink> : fast_tf::ModificationTrackable {
+    using Parent                = rmcs_description::PitchLink;
+    Eigen::Isometry3d transform = Eigen::Isometry3d::Identity();
+};
+
+template <>
+struct fast_tf::Joint<rmcs_description::OdomImu> : fast_tf::ModificationTrackable {
+    using Parent                 = rmcs_description::PitchLink;
+    Eigen::Quaterniond transform = Eigen::Quaterniond::Identity();
+};
+
+template <>
+struct fast_tf::Joint<rmcs_description::ViewerLink> : fast_tf::ModificationTrackable {
+    using Parent = rmcs_description::PitchLink;
+
+    void set_state(double angle) { angle_ = angle; }
+    auto get_transform() const { return Eigen::AngleAxisd{angle_, Eigen::Vector3d::UnitY()}; };
+
+private:
+    double angle_;
+};
+template <>
+struct fast_tf::Joint<rmcs_description::LeftFrontWheelLink> : fast_tf::ModificationTrackable {
     using Parent                = rmcs_description::BaseLink;
     Eigen::Isometry3d transform = Eigen::Isometry3d::Identity();
     void set_state(double angle) {
@@ -131,7 +145,7 @@ struct fast_tf::Joint<rmcs_description::LeftFrontWheelLink> {
 };
 
 template <>
-struct fast_tf::Joint<rmcs_description::LeftBackWheelLink> {
+struct fast_tf::Joint<rmcs_description::LeftBackWheelLink> : fast_tf::ModificationTrackable {
     using Parent                = rmcs_description::BaseLink;
     Eigen::Isometry3d transform = Eigen::Isometry3d::Identity();
     void set_state(double angle) {
@@ -142,7 +156,7 @@ struct fast_tf::Joint<rmcs_description::LeftBackWheelLink> {
 };
 
 template <>
-struct fast_tf::Joint<rmcs_description::RightBackWheelLink> {
+struct fast_tf::Joint<rmcs_description::RightBackWheelLink> : fast_tf::ModificationTrackable {
     using Parent                = rmcs_description::BaseLink;
     Eigen::Isometry3d transform = Eigen::Isometry3d::Identity();
     void set_state(double angle) {
@@ -153,7 +167,7 @@ struct fast_tf::Joint<rmcs_description::RightBackWheelLink> {
 };
 
 template <>
-struct fast_tf::Joint<rmcs_description::RightFrontWheelLink> {
+struct fast_tf::Joint<rmcs_description::RightFrontWheelLink> : fast_tf::ModificationTrackable {
     using Parent                = rmcs_description::BaseLink;
     Eigen::Isometry3d transform = Eigen::Isometry3d::Identity();
     void set_state(double angle) {
@@ -163,35 +177,20 @@ struct fast_tf::Joint<rmcs_description::RightFrontWheelLink> {
     }
 };
 
-template <>
-struct fast_tf::Joint<rmcs_description::OmniLinkLeftFront> {
-    using Parent                = rmcs_description::YawLink;
-    Eigen::Isometry3d transform = Eigen::Isometry3d::Identity();
-};
-
-template <>
-struct fast_tf::Joint<rmcs_description::OmniLinkRightFront> {
-    using Parent                = rmcs_description::YawLink;
-    Eigen::Isometry3d transform = Eigen::Isometry3d::Identity();
-};
-
-template <>
-struct fast_tf::Joint<rmcs_description::OmniLinkLeft> {
-    using Parent                = rmcs_description::YawLink;
-    Eigen::Isometry3d transform = Eigen::Isometry3d::Identity();
-};
-
-template <>
-struct fast_tf::Joint<rmcs_description::OmniLinkRight> {
-    using Parent                = rmcs_description::YawLink;
-    Eigen::Isometry3d transform = Eigen::Isometry3d::Identity();
-};
-
 namespace rmcs_description {
 
 using Tf = fast_tf::JointCollection<
-    YawLink, PitchLink, MuzzleLink, TransmitterLink, CameraLink, ImuLink, OdomImu, GimbalCenterLink,
-    LeftFrontWheelLink, LeftBackWheelLink, RightBackWheelLink, RightFrontWheelLink,
-    OmniLinkLeftFront, OmniLinkRightFront, OmniLinkLeft, OmniLinkRight>;
+    GimbalCenterLink, YawLink, PitchLink, MuzzleLink, TransmitterLink, CameraLink, OdomImu,
+    LeftFrontWheelLink, LeftBackWheelLink, RightBackWheelLink, RightFrontWheelLink, ViewerLink>;
+
+using InfantryTf = fast_tf::JointCollection<
+    GimbalCenterLink, YawLink, PitchLink, MuzzleLink, TransmitterLink, CameraLink, OdomImu,
+    LeftFrontWheelLink, LeftBackWheelLink, RightBackWheelLink, RightFrontWheelLink>;
+
+using HeroTf = fast_tf::JointCollection<
+    GimbalCenterLink, YawLink, PitchLink, MuzzleLink, TransmitterLink, CameraLink, OdomImu,
+    LeftFrontWheelLink, LeftBackWheelLink, RightBackWheelLink, RightFrontWheelLink, ViewerLink>;
+
+using AutoAimTf = fast_tf::JointCollection<MuzzleLink, TransmitterLink, CameraLink, OdomImu>;
 
 } // namespace rmcs_description
