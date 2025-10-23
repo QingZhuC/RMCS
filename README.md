@@ -31,5 +31,5 @@ set-robot mycomponents
 launch-rmcs
 ```
 
-在本机上运行代码。可实现输出 $sin(\omega t)$ ， $cos(\omega t)$ 和$sin(\omega t) + cos(\omega t)$的可视化结果（通过foxglove查看）
+在本机上运行代码。可实现输出 $sin(\omega t)$ ， $cos(\omega t)$ 和 $sin(\omega t) + cos(\omega t)$ 的可视化结果（通过foxglove查看）
 
