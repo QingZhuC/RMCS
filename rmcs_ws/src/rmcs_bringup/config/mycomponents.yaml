@@ -1,0 +1,19 @@
+rmcs_executor:
+  ros__parameters:
+    update_rate: 1000.0
+    components:
+      - rmcs_core::controller::mycomponents::MyOutput -> MyOutput
+      - rmcs_core::controller::mycomponents::MyInput -> MyInput
+      - rmcs_core::broadcaster::ValueBroadcaster -> Broadcaster
+
+
+MyOutput:
+  ros__parameters:
+    omega: 3.1415926535962359
+
+Broadcaster:
+  ros__parameters:
+    forward_list:
+      - /mycomponents/component_a/Sine
+      - /mycomponents/component_a/Cosine
+      - /mycomponents/component_b/Sine_Add_Cosine
