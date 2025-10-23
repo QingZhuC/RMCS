@@ -9,7 +9,9 @@ rmcs_executor:
 
 MyOutput:
   ros__parameters:
-    omega: 3.1415926535962359
+    omega_sine: 3.1415926535962359
+    omega_cosine: 3.1415926535962359
+
 
 Broadcaster:
   ros__parameters:

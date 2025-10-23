@@ -15,11 +15,12 @@ public:
         register_output("/mycomponents/component_a/Sine", Sine_);
         register_output("/mycomponents/component_a/Cosine", Cosine_);
 
-        omega_ = get_parameter("omega").as_double();
+        omega_sine_ = get_parameter("omega_sine").as_double();
+        omega_cosine_ = get_parameter("omega_cosine").as_double();
     }
     void update() override {
-        *Sine_ = sin(t * omega_);
-        *Cosine_ = cos(t * omega_);
+        *Sine_ = sin(t * omega_sine_);
+        *Cosine_ = cos(t * omega_cosine_);
 
         t += 0.001;
     }
@@ -27,7 +28,8 @@ public:
 private:
     OutputInterface<double> Sine_;
     OutputInterface<double> Cosine_;
-    double omega_;
+    double omega_sine_;
+    double omega_cosine_;
     double t = 0.0;
 };
 } // namespace rmcs_core::controller::mycomponents
