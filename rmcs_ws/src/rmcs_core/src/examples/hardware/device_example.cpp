@@ -26,7 +26,7 @@ public:
         , transmit_buffer_(*this, 32)
         , event_thread_([this]() { handle_events(); }) {
 
-        gm6020_.configure(device::DjiMotor::Config{device::DjiMotor::Type::GM6020});
+        gm6020_.configure(device::DjiMotor::Config{device::DjiMotor::Type::GM6020}.enable_multi_turn_angle());
     }
 
     ~DeviceExample() override {

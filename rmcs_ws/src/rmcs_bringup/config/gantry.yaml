@@ -1,0 +1,45 @@
+rmcs_executor:
+  ros__parameters:
+    update_rate: 1000.0
+    components:
+      - rmcs_core::hardware::SingleCBoardExample -> single_cboard_hardware
+
+      - rmcs_core::example::RemoteControllerExample -> remote_controller_example
+
+      - rmcs_core::controller::pid::PidController -> m2006_no_1_velocity_pid_controller
+      - rmcs_core::controller::pid::PidController -> m2006_no_2_velocity_pid_controller
+
+      - rmcs_core::controller::pid::PidController -> m2006_no_1_pitch_pid_controller
+      - rmcs_core::controller::pid::PidController -> m2006_no_2_pitch_pid_controller
+
+
+single_cboard_hardware:
+  ros__parameters:
+    usb_pid: -1
+
+m2006_no_1_velocity_pid_controller:
+  ros__parameters:
+    setpoint: /example/m2006_no_1/control_velocity
+    measurement: /example/m2006_no_1/velocity
+    control: /example/m2006_no_1/control_torque
+    kp: 0.0
+    ki: 0.0
+    kd: 0.0
+
+m2006_no_2_velocity_pid_controller:
+  ros__parameters:
+    setpoint: /example/m2006_no_1/velocity
+    measurement: /example/m2006_no_2/velocity
+    control: /example/m2006_no_2/control_torque
+    kp: 0.0
+    ki: 0.0
+    kd: 0.0
+
+m2006_no_1_pitch_pid_controller:
+  ros__parameters:
+    setpoint: /example/gantry/pitch
+    measurement: /example/m2006_no_1/angle
+    control: /example/m2006_no_1/control_velocity
+    kp: 0.0
+    ki: 0.0
+    kd: 0.0
