@@ -21,8 +21,9 @@ public:
         register_input("/remote/switch/left", remote_left_switch_);
         register_input("/remote/switch/right", remote_right_switch_);
 
+        register_output("/example/gantry/balance_flag", balance_flag_);
         register_output("/example/gantry/gantry_now_pitch", now_pitch_);
-        
+
         register_output("/example/m2006_mo_1/control_velocity", motor_control_velocity_);
         register_output("/example/gantry/control_pitch", motor_control_pitch_);
     }
@@ -35,6 +36,8 @@ public:
 
     void update() override {
         using namespace rmcs_msgs;
+        *motor_control_pitch_ = Deg_to_Rad(*now_pitch_); // 使得外环不起作用
+        *balance_flag_ = 0;
         if ((*remote_left_switch_ == Switch::DOWN || *remote_left_switch_ == Switch::UNKNOWN)
             && (*remote_right_switch_ == Switch::DOWN
                 || *remote_right_switch_ == Switch::UNKNOWN)) {
@@ -45,10 +48,13 @@ public:
             } else if (*remote_right_switch_ == Switch::UP) {
                 *motor_control_pitch_ = Deg_to_Rad(30.0);
             }
-        } else if (*remote_left_switch_ == Switch::UP && *remote_right_switch_ == Switch::UP) {
-            *motor_control_velocity_ = remote_left_joystic_->x() * 20.0;
-            
-            *motor_control_pitch_ = Deg_to_Rad(*now_pitch_);//使得外环不起作用
+        } else if (*remote_left_switch_ == Switch::UP) {
+            if (*remote_right_switch_ == Switch::UP) {
+                *motor_control_velocity_ = remote_left_joystic_->x() * 20.0;
+            }
+            else if(*remote_right_switch_ == Switch::MIDDLE){
+                *balance_flag_ = 0;
+            }
         }
     }
 
@@ -62,7 +68,9 @@ private:
     InputInterface<Eigen::Vector2d> remote_right_joystic_;
 
     OutputInterface<double> now_pitch_;
-    
+
+    OutputInterface<uint8_t> balance_flag_;
+
     OutputInterface<double> motor_control_velocity_;
     OutputInterface<double> motor_control_pitch_;
 };

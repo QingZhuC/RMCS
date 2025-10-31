@@ -10,7 +10,8 @@ rmcs_executor:
       - rmcs_core::controller::pid::PidController -> m2006_no_2_velocity_pid_controller
 
       - rmcs_core::controller::pid::PidController -> m2006_no_1_pitch_pid_controller
-      - rmcs_core::controller::pid::PidController -> m2006_no_2_pitch_pid_controller
+      
+      - rmcs_core::controller::pid::PidController -> m2006_no_1_roll_pid_controller
 
 
 single_cboard_hardware:
@@ -42,6 +43,15 @@ m2006_no_1_pitch_pid_controller:
     setpoint: /example/gantry/control_pitch
     measurement: /example/gantry/gantry_now_pitch
     control: /example/m2006_no_1/control_velocity
+    kp: 0.0
+    ki: 0.0
+    kd: 0.0
+
+m2006_no_1_roll_pid_controller:
+  ros__parameters:
+    setpoint: 0.0
+    measurement: /example/gantry/gantry_now_roll
+    control: /example/m2006_no_1/control_torque
     kp: 0.0
     ki: 0.0
     kd: 0.0

@@ -30,6 +30,8 @@ public:
         , transmit_buffer_(*this, 32)
         , event_thread_([this]() { handle_events(); }) {
 
+        register_input("/example/gantry/balance_flag", balance_flag_);
+            
         register_output("/example/gantry/gantry_now_pitch", gantry_pitch_);
         register_output("/example/gantry/gantry_now_roll", gantry_roll_);
         register_output("/tf", tf_);
@@ -66,6 +68,7 @@ public:
     void update() override {
         update_motors();
         update_imu();
+        gantry_balance(*balance_flag_);
         dr16_.update_status();
     }
 
@@ -116,6 +119,18 @@ private:
 
         RCLCPP_INFO(logger_, "Gantry Roll: %.3f", *gantry_roll_);
         RCLCPP_INFO(logger_, "Gantry Pitch: %.3f", *gantry_pitch_);
+    }
+
+    void gantry_balance(uint8_t flag) {
+        // 实现一个简单的初始调平，当然以后也随时可以用
+        if(flag){
+            M2006_NO_1_.configure(
+            device::DjiMotor::Config{device::DjiMotor::Type::M2006}.set_encoder_zero_point(
+                static_cast<int>(*gantry_roll_/360.0*8192)));
+        }
+        else {
+        *gantry_roll_ = 0.0;
+        }
     }
 
 protected:
@@ -171,14 +186,15 @@ private:
     device::Dr16 dr16_;
 
     device::Bmi088 bmi088_;
-    OutputInterface<rmcs_description::Tf> tf_;
 
     device::DjiMotor M2006_NO_1_;
     device::DjiMotor M2006_NO_2_;
 
+    OutputInterface<rmcs_description::Tf> tf_;
     OutputInterface<double> gantry_roll_;
     OutputInterface<double> gantry_pitch_;
 
+    InputInterface<uint8_t> balance_flag_;
     librmcs::client::CBoard::TransmitBuffer transmit_buffer_;
     std::thread event_thread_;
 };
