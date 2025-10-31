@@ -30,8 +30,20 @@ public:
         , transmit_buffer_(*this, 32)
         , event_thread_([this]() { handle_events(); }) {
 
-        M2006_NO_1_.configure(device::DjiMotor::Config{device::DjiMotor::Type::M2006});
-        M2006_NO_2_.configure(device::DjiMotor::Config{device::DjiMotor::Type::M2006});
+        register_output("/example/gantry/gantry_now_pitch", gantry_pitch_);
+        register_output("/example/gantry/gantry_now_roll", gantry_roll_);
+        register_output("/tf", tf_);
+
+        M2006_NO_1_.configure(
+            device::DjiMotor::Config{device::DjiMotor::Type::M2006}.enable_multi_turn_angle());
+        M2006_NO_1_.configure(
+            device::DjiMotor::Config{device::DjiMotor::Type::M2006}.set_encoder_zero_point(
+                static_cast<int>(get_parameter("M2006_NO_1_zero_point").as_int())));
+        M2006_NO_2_.configure(
+            device::DjiMotor::Config{device::DjiMotor::Type::M2006}.enable_multi_turn_angle());
+        M2006_NO_2_.configure(
+            device::DjiMotor::Config{device::DjiMotor::Type::M2006}.set_encoder_zero_point(
+                static_cast<int>(get_parameter("M2006_NO_2_zero_point").as_int())));
 
         bmi088_.set_coordinate_mapping([](double x, double y, double z) {
             // Get the mapping with the following code.
@@ -99,8 +111,10 @@ private:
         tf_->set_transform<rmcs_description::PitchLink, rmcs_description::OdomImu>(
             gimbal_imu_pose.conjugate());
 
+        *gantry_roll_ = bmi088_.gx();
         *gantry_pitch_ = bmi088_.gy();
-        
+
+        RCLCPP_INFO(logger_, "Gantry Roll: %.3f", *gantry_roll_);
         RCLCPP_INFO(logger_, "Gantry Pitch: %.3f", *gantry_pitch_);
     }
 
@@ -162,6 +176,7 @@ private:
     device::DjiMotor M2006_NO_1_;
     device::DjiMotor M2006_NO_2_;
 
+    OutputInterface<double> gantry_roll_;
     OutputInterface<double> gantry_pitch_;
 
     librmcs::client::CBoard::TransmitBuffer transmit_buffer_;
