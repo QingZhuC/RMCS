@@ -10,31 +10,32 @@ rmcs_executor:
       - rmcs_core::controller::pid::PidController -> m2006_no_2_velocity_pid_controller
 
       - rmcs_core::controller::pid::PidController -> m2006_no_1_pitch_pid_controller
-      
-      - rmcs_core::controller::pid::PidController -> m2006_no_1_roll_pid_controller
+      - rmcs_core::controller::pid::PidController -> m2006_no_2_angle_pid_controller
+
+
 
 
 single_cboard_hardware:
   ros__parameters:
     usb_pid: -1
-    M2006_NO_1_zero_point: 0
-    M2006_NO_2_zero_point: 0
+    balance_flag: 0
+
 
 m2006_no_1_velocity_pid_controller:
   ros__parameters:
     setpoint: /example/m2006_no_1/control_velocity
     measurement: /example/m2006_no_1/velocity
-    control: /example/m2006_no_1/control_torque
-    kp: 0.0
+    control: /example/m2006_no_1/remote_control_torque
+    kp: 1.0
     ki: 0.0
     kd: 0.0
 
 m2006_no_2_velocity_pid_controller:
   ros__parameters:
-    setpoint: /example/m2006_no_1/angle
-    measurement: /example/m2006_no_2/angle
-    control: /example/m2006_no_2/control_torque
-    kp: 0.0
+    setpoint: /example/m2006_no_2/control_velocity
+    measurement: /example/m2006_no_2/velocity
+    control: /example/m2006_no_2/remote_control_torque
+    kp: 1.0
     ki: 0.0
     kd: 0.0
 
@@ -42,16 +43,17 @@ m2006_no_1_pitch_pid_controller:
   ros__parameters:
     setpoint: /example/gantry/control_pitch
     measurement: /example/gantry/gantry_now_pitch
-    control: /example/m2006_no_1/control_velocity
-    kp: 0.0
+    control: /example/m2006_no_1/control_m2006_no_1_pitch
+    kp: 1.0
     ki: 0.0
     kd: 0.0
 
-m2006_no_1_roll_pid_controller:
+m2006_no_2_angle_pid_controller:
   ros__parameters:
-    setpoint: 0.0
-    measurement: /example/gantry/gantry_now_roll
-    control: /example/m2006_no_1/control_torque
-    kp: 0.0
+    setpoint: /example/m2006_no_1/angle
+    measurement: /example/m2006_no_2/angle
+    control: /example/m2006_no_2/control_angle
+    kp: 6.0
     ki: 0.0
     kd: 0.0
+

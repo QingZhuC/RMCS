@@ -21,6 +21,7 @@ public:
         : Node{get_component_name(), rclcpp::NodeOptions{}.automatically_declare_parameters_from_overrides(true)}
         , librmcs::client::CBoard{static_cast<int>(get_parameter("usb_pid").as_int())}
         , logger_(get_logger())
+        , balance_flag_(static_cast<uint8_t>(get_parameter("balance_flag").as_int()))
         , robot_command_(
               create_partner_component<RoboCommand>(get_component_name() + "_command", *this))
         , dr16_(*this)
@@ -30,22 +31,14 @@ public:
         , transmit_buffer_(*this, 32)
         , event_thread_([this]() { handle_events(); }) {
 
-        register_input("/example/gantry/balance_flag", balance_flag_);
-            
         register_output("/example/gantry/gantry_now_pitch", gantry_pitch_);
         register_output("/example/gantry/gantry_now_roll", gantry_roll_);
-        register_output("/tf", tf_);
+        register_output("/example/tf", tf_);
 
         M2006_NO_1_.configure(
             device::DjiMotor::Config{device::DjiMotor::Type::M2006}.enable_multi_turn_angle());
-        M2006_NO_1_.configure(
-            device::DjiMotor::Config{device::DjiMotor::Type::M2006}.set_encoder_zero_point(
-                static_cast<int>(get_parameter("M2006_NO_1_zero_point").as_int())));
         M2006_NO_2_.configure(
             device::DjiMotor::Config{device::DjiMotor::Type::M2006}.enable_multi_turn_angle());
-        M2006_NO_2_.configure(
-            device::DjiMotor::Config{device::DjiMotor::Type::M2006}.set_encoder_zero_point(
-                static_cast<int>(get_parameter("M2006_NO_2_zero_point").as_int())));
 
         bmi088_.set_coordinate_mapping([](double x, double y, double z) {
             // Get the mapping with the following code.
@@ -68,7 +61,7 @@ public:
     void update() override {
         update_motors();
         update_imu();
-        gantry_balance(*balance_flag_);
+        gantry_balance(balance_flag_);
         dr16_.update_status();
     }
 
@@ -114,22 +107,20 @@ private:
         tf_->set_transform<rmcs_description::PitchLink, rmcs_description::OdomImu>(
             gimbal_imu_pose.conjugate());
 
-        *gantry_roll_ = bmi088_.gx();
-        *gantry_pitch_ = bmi088_.gy();
+        *gantry_roll_ = bmi088_.ax();
+        *gantry_pitch_ = bmi088_.ay();
 
         RCLCPP_INFO(logger_, "Gantry Roll: %.3f", *gantry_roll_);
-        RCLCPP_INFO(logger_, "Gantry Pitch: %.3f", *gantry_pitch_);
+        // RCLCPP_INFO(logger_, "Gantry Pitch: %.3f", *gantry_pitch_);
     }
 
     void gantry_balance(uint8_t flag) {
         // 实现一个简单的初始调平，当然以后也随时可以用
-        if(flag){
+        if (flag) {
             M2006_NO_1_.configure(
-            device::DjiMotor::Config{device::DjiMotor::Type::M2006}.set_encoder_zero_point(
-                static_cast<int>(*gantry_roll_/360.0*8192)));
-        }
-        else {
-        *gantry_roll_ = 0.0;
+                device::DjiMotor::Config{device::DjiMotor::Type::M2006}.set_encoder_zero_point(
+                    static_cast<int>(*gantry_roll_ / 360.0 * 8192)));
+        } else {
         }
     }
 
@@ -172,6 +163,8 @@ protected:
 private:
     rclcpp::Logger logger_;
 
+    uint8_t balance_flag_;
+
     class RoboCommand : public rmcs_executor::Component {
     public:
         explicit RoboCommand(SingleCBoardExample& robot)
@@ -194,7 +187,6 @@ private:
     OutputInterface<double> gantry_roll_;
     OutputInterface<double> gantry_pitch_;
 
-    InputInterface<uint8_t> balance_flag_;
     librmcs::client::CBoard::TransmitBuffer transmit_buffer_;
     std::thread event_thread_;
 };
