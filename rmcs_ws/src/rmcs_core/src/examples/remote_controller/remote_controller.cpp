@@ -21,10 +21,10 @@ public:
         register_input("/remote/switch/left", remote_left_switch_);
         register_input("/remote/switch/right", remote_right_switch_);
 
-        register_input(
-            "/example/m2006_no_1/remote_control_torque", m2006_no_1_remote_control_torque);
-        register_input(
-            "/example/m2006_no_2/remote_control_torque", m2006_no_2_remote_control_torque);
+        // register_input(
+        //     "/example/m2006_no_1/remote_control_torque", m2006_no_1_remote_control_torque);
+        // register_input(
+        //     "/example/m2006_no_2/remote_control_torque", m2006_no_2_remote_control_torque);
 
         register_input("/example/gantry/gantry_now_pitch", now_pitch_);
         register_input("/example/gantry/gantry_now_roll", now_roll_);
@@ -32,8 +32,8 @@ public:
         register_input("/example/m2006_no_1/control_m2006_no_1_pitch", m2006_no_1_control_pitch_);
         register_input("/example/m2006_no_2/control_angle", m2006_no_2_control_angle_);
 
-        register_output("/example/m2006_no_1/control_torque", m2006_no_1_control_torque);
-        register_output("/example/m2006_no_2/control_torque", m2006_no_2_control_torque);
+        // register_output("/example/m2006_no_1/control_torque", m2006_no_1_control_torque);
+        // register_output("/example/m2006_no_2/control_torque", m2006_no_2_control_torque);
 
         register_output("/example/m2006_no_1/control_velocity", m2006_no_1_control_velocity_);
         register_output("/example/m2006_no_2/control_velocity", m2006_no_2_control_velocity_);
@@ -68,27 +68,29 @@ public:
         if ((*remote_left_switch_ == Switch::DOWN || *remote_left_switch_ == Switch::UNKNOWN)
             && (*remote_right_switch_ == Switch::DOWN
                 || *remote_right_switch_ == Switch::UNKNOWN)) {
-            Stop_Motor();
+            // Stop_Motor();
             // stop all !!
         } else if (*remote_left_switch_ == Switch::DOWN) {
             if (*remote_right_switch_ == Switch::MIDDLE) {
                 *m2006_no_1_control_velocity_ = -20.0 * remote_left_joystic_->x();
                 *m2006_no_2_control_velocity_ = -20.0 * remote_right_joystic_->x();
-                Control_Motor_Torque();
+                // Control_Motor_Torque();
             }
 
         } else if (*remote_left_switch_ == Switch::MIDDLE) {
             if (*remote_right_switch_ == Switch::MIDDLE) {
-                Control_Gantry_Pitch(20.0);
+                // Control_Gantry_Pitch(20.0);
 
             } else if (*remote_right_switch_ == Switch::UP) {
-                Control_Gantry_Pitch(30.0);
+                // Control_Gantry_Pitch(30.0);
+                *m2006_no_1_control_velocity_ = *m2006_no_1_control_pitch_;
+                *m2006_no_2_control_velocity_ = *m2006_no_2_control_angle_;
             }
         } else if (*remote_left_switch_ == Switch::UP) {
             if (*remote_right_switch_ == Switch::UP) {
                 *m2006_no_1_control_velocity_ = -20.0 * remote_left_joystic_->x();
                 *m2006_no_2_control_velocity_ = *m2006_no_2_control_angle_;
-                Control_Motor_Torque();
+                // Control_Motor_Torque();
             } else if (*remote_right_switch_ == Switch::MIDDLE) {
                 if ((*now_roll_) > 1E-6) {
                     *m2006_no_1_control_velocity_ = 0.0;
