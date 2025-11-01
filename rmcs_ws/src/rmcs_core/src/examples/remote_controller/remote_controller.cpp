@@ -35,8 +35,8 @@ public:
         register_output("/example/m2006_no_1/control_torque", m2006_no_1_control_torque);
         register_output("/example/m2006_no_2/control_torque", m2006_no_2_control_torque);
 
-        register_output("/example/motor_1/control_velocity", m2006_no_1_control_velocity_);
-        register_output("/example/motor_2/control_velocity", m2006_no_2_control_velocity_);
+        register_output("/example/m2006_no_1/control_velocity", m2006_no_1_control_velocity_);
+        register_output("/example/m2006_no_2/control_velocity", m2006_no_2_control_velocity_);
         register_output("/example/gantry/control_pitch", motor_control_pitch_);
     }
 
