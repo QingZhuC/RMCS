@@ -22,6 +22,17 @@ single_cboard_hardware:
     usb_pid: -1
     balance_flag: 0
 
+remote_controller_example:
+  ros__parameters:
+    now_pitch: /example/gantry/gantry_now_pitch
+    now_roll: /example/gantry/gantry_now_roll
+    remote_left_switch: /example/remote_controller/left_switch
+    remote_right_switch: /example/remote_controller/right_switch
+    m2006_no_1_angle: /example/m2006_no_1/angle
+    m2006_no_2_angle: /example/m2006_no_2/angle
+    control_m2006_no_1_pitch: /example/m2006_no_1/control_m2006_no_1_pitch
+    control_angle: /example/m2006_no_2/control_angle
+    angle_error_ki: 0.0439
 
 m2006_no_1_velocity_pid_controller:
   ros__parameters:

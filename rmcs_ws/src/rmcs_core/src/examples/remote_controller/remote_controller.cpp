@@ -59,8 +59,17 @@ public:
     void Control_Gantry_Pitch(double target_pitch) {
         *motor_control_pitch_ = Deg_to_Rad(target_pitch);
         *m2006_no_1_control_velocity_ = *m2006_no_1_control_pitch_;
-        *m2006_no_2_control_velocity_ = *m2006_no_2_control_angle_;
+        *m2006_no_2_control_velocity_ = *m2006_no_2_control_angle_ + angle_error_;
         Control_Motor_Torque();
+    }
+
+    void Gantry_Balance() {
+
+        if ((*now_roll_) > 1E-6) {
+            angle_error_ += get_parameter("angle_error_ki").as_double();
+        } else if ((*now_roll_) < 1E-6) {
+            angle_error_ -= get_parameter("angle_error_ki").as_double();
+        }
     }
 
     void update() override {
@@ -84,19 +93,16 @@ public:
             } else if (*remote_right_switch_ == Switch::UP) {
                 // Control_Gantry_Pitch(30.0);
                 *m2006_no_1_control_velocity_ = *m2006_no_1_control_pitch_;
-                *m2006_no_2_control_velocity_ = *m2006_no_2_control_angle_;
+                *m2006_no_2_control_velocity_ = *m2006_no_2_control_angle_ + angle_error_;
             }
         } else if (*remote_left_switch_ == Switch::UP) {
             if (*remote_right_switch_ == Switch::UP) {
                 *m2006_no_1_control_velocity_ = -20.0 * remote_left_joystic_->x();
-                *m2006_no_2_control_velocity_ = *m2006_no_2_control_angle_;
+                *m2006_no_2_control_velocity_ = *m2006_no_2_control_angle_ + angle_error_;
                 // Control_Motor_Torque();
             } else if (*remote_right_switch_ == Switch::MIDDLE) {
-                if ((*now_roll_) > 1E-6) {
-                    *m2006_no_1_control_velocity_ = 0.0;
-                    *m2006_no_2_control_velocity_ = 0.0;
-                } else {
-                }
+                Gantry_Balance();
+                *m2006_no_2_control_velocity_ = *m2006_no_2_control_angle_ + angle_error_;
             }
         }
 
@@ -105,6 +111,7 @@ public:
 
 private:
     rclcpp::Logger logger_;
+    double angle_error_;
 
     InputInterface<rmcs_msgs::Switch> remote_left_switch_;
     InputInterface<rmcs_msgs::Switch> remote_right_switch_;
