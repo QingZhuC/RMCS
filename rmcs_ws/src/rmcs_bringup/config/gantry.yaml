@@ -21,6 +21,7 @@ single_cboard_hardware:
   ros__parameters:
     usb_pid: -1
     balance_flag: 0
+    set_target_pitch: 0.5
 
 remote_controller_example:
   ros__parameters:
@@ -32,14 +33,15 @@ remote_controller_example:
     m2006_no_2_angle: /example/m2006_no_2/angle
     control_m2006_no_1_pitch: /example/m2006_no_1/control_m2006_no_1_pitch
     control_angle: /example/m2006_no_2/control_angle
-    angle_error_ki: 0.0439
+    angle_error_ki: 0.000766989746
+    control_angle_error_kp: 8.0    
 
 m2006_no_1_velocity_pid_controller:
   ros__parameters:
     setpoint: /example/m2006_no_1/control_velocity
     measurement: /example/m2006_no_1/velocity
     control: /example/m2006_no_1/control_torque
-    kp: 1.0
+    kp: 0.6
     ki: 0.0
     kd: 0.0
 
@@ -48,16 +50,16 @@ m2006_no_2_velocity_pid_controller:
     setpoint: /example/m2006_no_2/control_velocity
     measurement: /example/m2006_no_2/velocity
     control: /example/m2006_no_2/control_torque
-    kp: 1.1
+    kp: 0.6
     ki: 0.0
     kd: 0.0
 
 m2006_no_1_pitch_pid_controller:
   ros__parameters:
-    setpoint: 0.34
+    setpoint: /example/gantry/set_target_pitch_
     measurement: /example/gantry/gantry_now_pitch
     control: /example/m2006_no_1/control_m2006_no_1_pitch
-    kp: 0.02
+    kp: 20.0
     ki: 0.0
     kd: 0.0
 
@@ -66,7 +68,7 @@ m2006_no_2_angle_pid_controller:
     setpoint: /example/m2006_no_1/angle
     measurement: /example/m2006_no_2/angle
     control: /example/m2006_no_2/control_angle
-    kp: 10.0
+    kp: 8.0
     ki: 0.0
     kd: 0.0
 
@@ -78,3 +80,6 @@ gantry_value_broadcaster:
       - /example/m2006_no_1/control_velocity
       - /example/m2006_no_1/control_torque
       - /example/m2006_no_2/control_torque
+
+      - /example/gantry/set_target_pitch_
+      - /example/m2006_no_1/control_m2006_no_1_pitch

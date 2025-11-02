@@ -31,6 +31,7 @@ public:
         , transmit_buffer_(*this, 32)
         , event_thread_([this]() { handle_events(); }) {
 
+        register_output("/example/gantry/set_target_pitch_", set_target_pitch_);
         register_output("/example/gantry/gantry_now_pitch", gantry_pitch_);
         register_output("/example/gantry/gantry_now_roll", gantry_roll_);
         register_output("/example/tf", tf_);
@@ -59,6 +60,7 @@ public:
     }
 
     void update() override {
+        *set_target_pitch_ =get_parameter("set_target_pitch").as_double();
         update_motors();
         update_imu();
         gantry_balance(balance_flag_);
@@ -107,11 +109,11 @@ private:
         tf_->set_transform<rmcs_description::PitchLink, rmcs_description::OdomImu>(
             gimbal_imu_pose.conjugate());
 
-        *gantry_roll_ = bmi088_.ax();
-        *gantry_pitch_ = bmi088_.ay();
+        *gantry_roll_ = bmi088_.ay();
+        *gantry_pitch_ = bmi088_.ax();
 
         RCLCPP_INFO(logger_, "Gantry Roll: %.3f", *gantry_roll_);
-        // RCLCPP_INFO(logger_, "Gantry Pitch: %.3f", *gantry_pitch_);
+        RCLCPP_INFO(logger_, "Gantry Pitch: %.3f", *gantry_pitch_);
     }
 
     void gantry_balance(uint8_t flag) {
@@ -182,6 +184,8 @@ private:
 
     device::DjiMotor M2006_NO_1_;
     device::DjiMotor M2006_NO_2_;
+
+    OutputInterface<double> set_target_pitch_;
 
     OutputInterface<rmcs_description::Tf> tf_;
     OutputInterface<double> gantry_roll_;

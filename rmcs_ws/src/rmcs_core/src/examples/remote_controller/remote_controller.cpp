@@ -46,8 +46,8 @@ public:
     }
 
     void Stop_Motor() {
-        *m2006_no_1_control_torque = 0.0;
-        *m2006_no_2_control_torque = 0.0;
+        *m2006_no_1_control_velocity_ = 0.0;
+        *m2006_no_2_control_velocity_ = 0.0;
     }
 
     double Deg_to_Rad(double deg) {
@@ -66,11 +66,11 @@ public:
     void Gantry_Balance() {
 
         if ((*now_roll_) > 1E-6) {
-            angle_error_ += get_parameter("angle_error_ki").as_double();
-        } else if ((*now_roll_) < 1E-6) {
             angle_error_ -= get_parameter("angle_error_ki").as_double();
+        } else if ((*now_roll_) < -1E-6) {
+            angle_error_ += get_parameter("angle_error_ki").as_double();
         }
-        control_angle_error_ += angle_error_ * 10.0;
+        control_angle_error_ = angle_error_ * get_parameter("control_angle_error_kp").as_double();
     }
 
     void update() override {
@@ -79,7 +79,7 @@ public:
             && (*remote_right_switch_ == Switch::DOWN
                 || *remote_right_switch_ == Switch::UNKNOWN)) {
             // Stop_Motor();
-            // stop all !!
+            //  stop all !!
         } else if (*remote_left_switch_ == Switch::DOWN) {
             if (*remote_right_switch_ == Switch::MIDDLE) {
                 *m2006_no_1_control_velocity_ = -20.0 * remote_left_joystic_->x();
@@ -92,22 +92,21 @@ public:
                 // Control_Gantry_Pitch(20.0);
 
             } else if (*remote_right_switch_ == Switch::UP) {
-                // Control_Gantry_Pitch(30.0);
-                *m2006_no_1_control_velocity_ = *m2006_no_1_control_pitch_;
+                *m2006_no_1_control_velocity_ = -(*m2006_no_1_control_pitch_);
                 *m2006_no_2_control_velocity_ = *m2006_no_2_control_angle_ + control_angle_error_;
             }
         } else if (*remote_left_switch_ == Switch::UP) {
             if (*remote_right_switch_ == Switch::UP) {
                 *m2006_no_1_control_velocity_ = -20.0 * remote_left_joystic_->x();
                 *m2006_no_2_control_velocity_ = *m2006_no_2_control_angle_ + control_angle_error_;
-                // Control_Motor_Torque();
+                // Gantry_Balance();
+                // *m2006_no_2_control_velocity_ = *m2006_no_2_control_angle_ +
+                // control_angle_error_; Control_Motor_Torque();
             } else if (*remote_right_switch_ == Switch::MIDDLE) {
                 Gantry_Balance();
                 *m2006_no_2_control_velocity_ = *m2006_no_2_control_angle_ + control_angle_error_;
             }
         }
-
-        RCLCPP_INFO(logger_, "ctrl_v:%.3f", *m2006_no_1_control_velocity_);
     }
 
 private:
