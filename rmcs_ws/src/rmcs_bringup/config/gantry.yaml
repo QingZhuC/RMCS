@@ -34,14 +34,14 @@ remote_controller_example:
     control_m2006_no_1_pitch: /example/m2006_no_1/control_m2006_no_1_pitch
     control_angle: /example/m2006_no_2/control_angle
     angle_error_ki: 0.000766989746
-    control_angle_error_kp: 8.0    
+    control_angle_error_kp: 80.0    
 
 m2006_no_1_velocity_pid_controller:
   ros__parameters:
     setpoint: /example/m2006_no_1/control_velocity
     measurement: /example/m2006_no_1/velocity
     control: /example/m2006_no_1/control_torque
-    kp: 0.6
+    kp: 0.5
     ki: 0.0
     kd: 0.0
 
@@ -50,7 +50,7 @@ m2006_no_2_velocity_pid_controller:
     setpoint: /example/m2006_no_2/control_velocity
     measurement: /example/m2006_no_2/velocity
     control: /example/m2006_no_2/control_torque
-    kp: 0.6
+    kp: 0.5
     ki: 0.0
     kd: 0.0
 
@@ -59,7 +59,7 @@ m2006_no_1_pitch_pid_controller:
     setpoint: /example/gantry/set_target_pitch_
     measurement: /example/gantry/gantry_now_pitch
     control: /example/m2006_no_1/control_m2006_no_1_pitch
-    kp: 20.0
+    kp: 400.0
     ki: 0.0
     kd: 0.0
 
@@ -68,7 +68,7 @@ m2006_no_2_angle_pid_controller:
     setpoint: /example/m2006_no_1/angle
     measurement: /example/m2006_no_2/angle
     control: /example/m2006_no_2/control_angle
-    kp: 8.0
+    kp: 80.0
     ki: 0.0
     kd: 0.0
 
