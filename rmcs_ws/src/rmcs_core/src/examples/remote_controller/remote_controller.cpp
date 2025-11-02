@@ -70,6 +70,7 @@ public:
         } else if ((*now_roll_) < 1E-6) {
             angle_error_ -= get_parameter("angle_error_ki").as_double();
         }
+        control_angle_error_ += angle_error_ * 10.0;
     }
 
     void update() override {
@@ -93,16 +94,16 @@ public:
             } else if (*remote_right_switch_ == Switch::UP) {
                 // Control_Gantry_Pitch(30.0);
                 *m2006_no_1_control_velocity_ = *m2006_no_1_control_pitch_;
-                *m2006_no_2_control_velocity_ = *m2006_no_2_control_angle_ + angle_error_;
+                *m2006_no_2_control_velocity_ = *m2006_no_2_control_angle_ + control_angle_error_;
             }
         } else if (*remote_left_switch_ == Switch::UP) {
             if (*remote_right_switch_ == Switch::UP) {
                 *m2006_no_1_control_velocity_ = -20.0 * remote_left_joystic_->x();
-                *m2006_no_2_control_velocity_ = *m2006_no_2_control_angle_ + angle_error_;
+                *m2006_no_2_control_velocity_ = *m2006_no_2_control_angle_ + control_angle_error_;
                 // Control_Motor_Torque();
             } else if (*remote_right_switch_ == Switch::MIDDLE) {
                 Gantry_Balance();
-                *m2006_no_2_control_velocity_ = *m2006_no_2_control_angle_ + angle_error_;
+                *m2006_no_2_control_velocity_ = *m2006_no_2_control_angle_ + control_angle_error_;
             }
         }
 
@@ -112,6 +113,7 @@ public:
 private:
     rclcpp::Logger logger_;
     double angle_error_;
+    double control_angle_error_;
 
     InputInterface<rmcs_msgs::Switch> remote_left_switch_;
     InputInterface<rmcs_msgs::Switch> remote_right_switch_;
