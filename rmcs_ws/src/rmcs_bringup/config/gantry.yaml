@@ -22,6 +22,8 @@ single_cboard_hardware:
     usb_pid: -1
     balance_flag: 0
     set_target_pitch: 0.5
+    pitch_filter_cutoff_frequency: 5.0
+    roll_filter_cutoff_frequency: 5.0
 
 remote_controller_example:
   ros__parameters:
@@ -59,7 +61,7 @@ m2006_no_1_pitch_pid_controller:
     setpoint: /example/gantry/set_target_pitch_
     measurement: /example/gantry/gantry_now_pitch
     control: /example/m2006_no_1/control_m2006_no_1_pitch
-    kp: 400.0
+    kp: 550.0
     ki: 0.0
     kd: 0.0
 

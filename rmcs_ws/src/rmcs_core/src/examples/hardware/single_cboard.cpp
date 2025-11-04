@@ -1,8 +1,8 @@
+#include "filter/low_pass_filter.hpp"
 #include "hardware/device/bmi088.hpp"
 #include "hardware/device/dji_motor.hpp"
 #include "hardware/device/dr16.hpp"
 #include "librmcs/client/cboard.hpp"
-#include "librmcs/device/bmi088.hpp"
 #include <rclcpp/logger.hpp>
 #include <rclcpp/logging.hpp>
 #include <rclcpp/node.hpp>
@@ -28,6 +28,8 @@ public:
         , bmi088_(1000, 0.2, 0.0)
         , M2006_NO_1_(*this, *robot_command_, "/example/m2006_no_1")
         , M2006_NO_2_(*this, *robot_command_, "/example/m2006_no_2")
+        , gantry_now_pitch_filter_(get_parameter("pitch_filter_cutoff_frequency").as_double(), 1000.0)
+        , gantry_now_roll_filter_(get_parameter("roll_filter_cutoff_frequency").as_double(), 1000.0)
         , transmit_buffer_(*this, 32)
         , event_thread_([this]() { handle_events(); }) {
 
@@ -60,7 +62,7 @@ public:
     }
 
     void update() override {
-        *set_target_pitch_ =get_parameter("set_target_pitch").as_double();
+        *set_target_pitch_ = get_parameter("set_target_pitch").as_double();
         update_motors();
         update_imu();
         gantry_balance(balance_flag_);
@@ -109,8 +111,10 @@ private:
         tf_->set_transform<rmcs_description::PitchLink, rmcs_description::OdomImu>(
             gimbal_imu_pose.conjugate());
 
-        *gantry_roll_ = bmi088_.ay();
-        *gantry_pitch_ = bmi088_.ax();
+        *gantry_roll_ = gantry_now_roll_filter_.update( bmi088_.ay() );
+        *gantry_pitch_ = gantry_now_pitch_filter_.update(bmi088_.ax());
+
+        
 
         RCLCPP_INFO(logger_, "Gantry Roll: %.3f", *gantry_roll_);
         RCLCPP_INFO(logger_, "Gantry Pitch: %.3f", *gantry_pitch_);
@@ -190,6 +194,9 @@ private:
     OutputInterface<rmcs_description::Tf> tf_;
     OutputInterface<double> gantry_roll_;
     OutputInterface<double> gantry_pitch_;
+
+    filter::LowPassFilter<1> gantry_now_pitch_filter_;
+    filter::LowPassFilter<1> gantry_now_roll_filter_;
 
     librmcs::client::CBoard::TransmitBuffer transmit_buffer_;
     std::thread event_thread_;

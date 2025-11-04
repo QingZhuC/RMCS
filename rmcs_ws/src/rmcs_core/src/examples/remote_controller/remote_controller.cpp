@@ -40,10 +40,10 @@ public:
         register_output("/example/gantry/control_pitch", motor_control_pitch_);
     }
 
-    void Control_Motor_Torque() {
-        *m2006_no_1_control_torque = *m2006_no_1_remote_control_torque;
-        *m2006_no_2_control_torque = *m2006_no_2_remote_control_torque;
-    }
+    // void Control_Motor_Torque() {
+    //     *m2006_no_1_control_torque = *m2006_no_1_remote_control_torque;
+    //     *m2006_no_2_control_torque = *m2006_no_2_remote_control_torque;
+    // }
 
     void Stop_Motor() {
         *m2006_no_1_control_velocity_ = 0.0;
@@ -60,7 +60,7 @@ public:
         *motor_control_pitch_ = Deg_to_Rad(target_pitch);
         *m2006_no_1_control_velocity_ = *m2006_no_1_control_pitch_;
         *m2006_no_2_control_velocity_ = *m2006_no_2_control_angle_ + angle_error_;
-        Control_Motor_Torque();
+        // Control_Motor_Torque();
     }
 
     void Gantry_Balance() {
@@ -120,8 +120,8 @@ private:
     InputInterface<Eigen::Vector2d> remote_left_joystic_;
     InputInterface<Eigen::Vector2d> remote_right_joystic_;
 
-    InputInterface<double> m2006_no_1_remote_control_torque;
-    InputInterface<double> m2006_no_2_remote_control_torque;
+    // InputInterface<double> m2006_no_1_remote_control_torque;
+    // InputInterface<double> m2006_no_2_remote_control_torque;
 
     InputInterface<double> now_pitch_;
     InputInterface<double> now_roll_;
@@ -129,8 +129,8 @@ private:
     InputInterface<double> m2006_no_1_control_pitch_;
     InputInterface<double> m2006_no_2_control_angle_;
 
-    OutputInterface<double> m2006_no_1_control_torque;
-    OutputInterface<double> m2006_no_2_control_torque;
+    // OutputInterface<double> m2006_no_1_control_torque;
+    // OutputInterface<double> m2006_no_2_control_torque;
 
     OutputInterface<double> m2006_no_1_control_velocity_;
     OutputInterface<double> m2006_no_2_control_velocity_;
