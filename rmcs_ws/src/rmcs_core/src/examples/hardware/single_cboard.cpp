@@ -21,7 +21,6 @@ public:
         : Node{get_component_name(), rclcpp::NodeOptions{}.automatically_declare_parameters_from_overrides(true)}
         , librmcs::client::CBoard{static_cast<int>(get_parameter("usb_pid").as_int())}
         , logger_(get_logger())
-        , balance_flag_(static_cast<uint8_t>(get_parameter("balance_flag").as_int()))
         , robot_command_(
               create_partner_component<RoboCommand>(get_component_name() + "_command", *this))
         , dr16_(*this)
@@ -65,7 +64,6 @@ public:
         *set_target_pitch_ = get_parameter("set_target_pitch").as_double();
         update_motors();
         update_imu();
-        gantry_balance(balance_flag_);
         dr16_.update_status();
     }
 
@@ -120,16 +118,6 @@ private:
         RCLCPP_INFO(logger_, "Gantry Pitch: %.3f", *gantry_pitch_);
     }
 
-    void gantry_balance(uint8_t flag) {
-        // 实现一个简单的初始调平，当然以后也随时可以用
-        if (flag) {
-            M2006_NO_1_.configure(
-                device::DjiMotor::Config{device::DjiMotor::Type::M2006}.set_encoder_zero_point(
-                    static_cast<int>(*gantry_roll_ / 360.0 * 8192)));
-        } else {
-        }
-    }
-
 protected:
     // 关于这里，如果你只有一个声明而没有实现，像我注释掉的内容一样，会报错
 
@@ -168,8 +156,6 @@ protected:
 
 private:
     rclcpp::Logger logger_;
-
-    uint8_t balance_flag_;
 
     class RoboCommand : public rmcs_executor::Component {
     public:

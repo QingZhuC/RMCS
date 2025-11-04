@@ -20,7 +20,6 @@ rmcs_executor:
 single_cboard_hardware:
   ros__parameters:
     usb_pid: -1
-    balance_flag: 0
     set_target_pitch: 0.5
     pitch_filter_cutoff_frequency: 5.0
     roll_filter_cutoff_frequency: 5.0
